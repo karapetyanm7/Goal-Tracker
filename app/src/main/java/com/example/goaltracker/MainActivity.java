@@ -11,35 +11,36 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    private EditText editTextHabit;
-    private Button buttonAddHabit;
-    private RecyclerView recyclerViewHabits;
-    private com.example.goaltracker.HabitAdapter habitAdapter;
-    private ArrayList<String> habitList;
+    private EditText editTextGoal;
+    private Button buttonAddGoal;
+    private RecyclerView recyclerViewGoals;
+    private GoalAdapter goalAdapter;
+    private ArrayList<Goal> goalList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        editTextHabit = findViewById(R.id.editTextHabit);
-        buttonAddHabit = findViewById(R.id.buttonAddHabit);
-        recyclerViewHabits = findViewById(R.id.recyclerViewHabits);
+        editTextGoal = findViewById(R.id.editTextGoal);
+        buttonAddGoal = findViewById(R.id.buttonAddGoal);
+        recyclerViewGoals = findViewById(R.id.recyclerViewGoals);
 
-        habitList = new ArrayList<>();
-        habitAdapter = new com.example.goaltracker.HabitAdapter(habitList);
+        goalList = new ArrayList<>();
+        goalAdapter = new GoalAdapter(goalList);
 
-        recyclerViewHabits.setLayoutManager(new LinearLayoutManager(this));
-        recyclerViewHabits.setAdapter(habitAdapter);
+        recyclerViewGoals.setLayoutManager(new LinearLayoutManager(this));
+        recyclerViewGoals.setAdapter(goalAdapter);
 
-        buttonAddHabit.setOnClickListener(new View.OnClickListener() {
+        buttonAddGoal.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String newHabit = editTextHabit.getText().toString();
-                if (!newHabit.isEmpty()) {
-                    habitList.add(newHabit);
-                    habitAdapter.notifyDataSetChanged();
-                    editTextHabit.setText("");
+                String newGoal = editTextGoal.getText().toString();
+                if (!newGoal.isEmpty()) {
+                    Goal goal = new Goal(newGoal);
+                    goalList.add(goal);
+                    goalAdapter.notifyDataSetChanged();
+                    editTextGoal.setText("");
                 }
             }
         });

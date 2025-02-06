@@ -7,10 +7,10 @@
     android:background="@android:color/white">
 
     <EditText
-        android:id="@+id/editTextHabit"
+        android:id="@+id/editTextGoal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Введите привычку"
+        android:hint="Enter a new goal"
         android:inputType="text"
         android:padding="10dp"
         android:background="@android:drawable/edit_text"
@@ -18,37 +18,21 @@
         android:textSize="16sp"/>
 
     <Button
-        android:id="@+id/buttonAddHabit"
+        android:id="@+id/buttonAddGoal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Добавить привычку"
+        android:text="Add Goal"
         android:textSize="16sp"
         android:layout_marginTop="10dp"
         android:padding="12dp"
-        android:backgroundTint="@color/purple"
+        android:backgroundTint="@color/purple_500"
         android:textColor="@android:color/white"/>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@android:color/darker_gray"
-        android:layout_marginTop="10dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Ваши привычки"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginTop="20dp"
-        android:textColor="#000"/>
-
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewHabits"
+        android:id="@+id/recyclerViewGoals"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:scrollbars="vertical"
         android:background="@android:color/white"/>
-
 </LinearLayout>
