@@ -1,6 +1,6 @@
 package com.example.goaltracker;
 
-public class Habit {
+public class Habit {//.
 
     private String name;
     private int points;
