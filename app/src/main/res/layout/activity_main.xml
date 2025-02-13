@@ -3,36 +3,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@android:color/white">
-
-    <EditText
-        android:id="@+id/editTextGoal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Enter a new goal"
-        android:inputType="text"
-        android:padding="10dp"
-        android:background="@android:drawable/edit_text"
-        android:textColor="#000"
-        android:textSize="16sp"/>
+    android:padding="16dp">
 
     <Button
-        android:id="@+id/buttonAddGoal"
-        android:layout_width="match_parent"
+        android:id="@+id/addHabitButton"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add Goal"
-        android:textSize="16sp"
-        android:layout_marginTop="10dp"
-        android:padding="12dp"
-        android:backgroundTint="@color/purple_500"
-        android:textColor="@android:color/white"/>
+        android:text="Add Habit"
+        android:layout_gravity="center_horizontal" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewGoals"
+    <ListView
+        android:id="@+id/habitListView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:scrollbars="vertical"
-        android:background="@android:color/white"/>
+        android:layout_marginTop="16dp" />
+
 </LinearLayout>
