@@ -4,11 +4,6 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <EditText
-        android:id="@+id/habitEditText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Enter habit" />
 
     <Button
         android:id="@+id/addButton"

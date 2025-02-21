@@ -1,44 +1,51 @@
 package com.example.goaltracker;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.appcompat.app.AppCompatActivity;
 
 public class HabitDetailActivity extends AppCompatActivity {
 
-    private ImageView habitTreeImageView;
     private TextView habitNameTextView;
     private TextView habitPointsTextView;
-    private TextView habitCompletionTextView;
-    private TextView habitMaxStreakTextView;
-    private TextView habitCurrentStreakTextView;
+    private TextView habitStreakTextView;
+    private ImageView habitTreeImageView;
+    private ImageView streakIconImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_habit_detail);
 
-        habitTreeImageView = findViewById(R.id.habitTreeImageView);
+        String habitName = getIntent().getStringExtra("habit_name");
+        int habitPoints = getIntent().getIntExtra("habit_points", 100); // Начальные очки 100
+        int currentStreak = getIntent().getIntExtra("habit_streak", 0); // Стрик по умолчанию 0
+
         habitNameTextView = findViewById(R.id.habitNameTextView);
         habitPointsTextView = findViewById(R.id.habitPointsTextView);
-        habitCompletionTextView = findViewById(R.id.habitCompletionTextView);
-        habitMaxStreakTextView = findViewById(R.id.habitMaxStreakTextView);
-        habitCurrentStreakTextView = findViewById(R.id.habitCurrentStreakTextView);
-
-        String habitName = getIntent().getStringExtra("habitName");
-        int habitPoints = getIntent().getIntExtra("habitPoints", 0);
-        int habitCompletion = getIntent().getIntExtra("habitCompletion", 0);
-        int habitMaxStreak = getIntent().getIntExtra("habitMaxStreak", 0);
-        int habitCurrentStreak = getIntent().getIntExtra("habitCurrentStreak", 0);
+        habitStreakTextView = findViewById(R.id.habitStreakTextView);
+        habitTreeImageView = findViewById(R.id.habitTreeImageView);
+        streakIconImageView = findViewById(R.id.streakIconImageView);
 
         habitNameTextView.setText(habitName);
         habitPointsTextView.setText("Points: " + habitPoints);
-        habitCompletionTextView.setText("Completion: " + habitCompletion);
-        habitMaxStreakTextView.setText("Max Streak: " + habitMaxStreak);
-        habitCurrentStreakTextView.setText("Current Streak: " + habitCurrentStreak);
+        habitStreakTextView.setText("Streak: " + currentStreak);
 
-        habitTreeImageView.setImageResource(R.drawable.tree_normal);
+
+        if (habitPoints >= 500) {
+            habitTreeImageView.setImageResource(R.drawable.tree_final);
+        } else if (habitPoints >= 200) {
+            habitTreeImageView.setImageResource(R.drawable.tree_stage2);
+        } else {
+            habitTreeImageView.setImageResource(R.drawable.tree_normal);
+        }
+
+        if (currentStreak >= 1) {
+            streakIconImageView.setImageResource(R.drawable.streak_fire);
+        } else {
+            streakIconImageView.setVisibility(ImageView.INVISIBLE);
+        }
     }
 }

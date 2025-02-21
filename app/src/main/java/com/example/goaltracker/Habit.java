@@ -14,6 +14,7 @@ public class Habit {
         this.completionCount = 0;
         this.maxStreak = 0;
         this.currentStreak = 0;
+
     }
 
     public String getName() {
@@ -56,4 +57,8 @@ public class Habit {
     public String toString() {
         return "Habit: " + name;
     }
+
+
+
+
 }

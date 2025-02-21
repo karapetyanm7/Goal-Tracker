@@ -5,50 +5,43 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <ImageView
-        android:id="@+id/habitTreeImageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/tree_normal" />
 
     <TextView
         android:id="@+id/habitNameTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Habit Name"
-        android:textSize="24sp"
-        android:layout_marginTop="16dp" />
+        android:textSize="24sp" />
+
 
     <TextView
         android:id="@+id/habitPointsTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Points: 0"
-        android:textSize="18sp"
-        android:layout_marginTop="8dp" />
+        android:text="Points: 100"
+        android:textSize="18sp" />
+
 
     <TextView
-        android:id="@+id/habitCompletionTextView"
+        android:id="@+id/habitStreakTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Completion: 0"
-        android:textSize="18sp"
-        android:layout_marginTop="8dp" />
+        android:text="Streak: 0"
+        android:textSize="18sp" />
 
-    <TextView
-        android:id="@+id/habitMaxStreakTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Max Streak: 0"
-        android:textSize="18sp"
-        android:layout_marginTop="8dp" />
 
-    <TextView
-        android:id="@+id/habitCurrentStreakTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Current Streak: 0"
-        android:textSize="18sp"
-        android:layout_marginTop="8dp" />
+    <ImageView
+        android:id="@+id/habitTreeImageView"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:src="@drawable/tree_normal" />
+
+
+    <ImageView
+        android:id="@+id/streakIconImageView"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:visibility="gone"
+        android:src="@drawable/streak_fire" />
 
 </LinearLayout>
