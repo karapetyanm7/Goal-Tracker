@@ -20,8 +20,8 @@ public class HabitDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_habit_detail);
 
         String habitName = getIntent().getStringExtra("habit_name");
-        int habitPoints = getIntent().getIntExtra("habit_points", 100); // Начальные очки 100
-        int currentStreak = getIntent().getIntExtra("habit_streak", 0); // Стрик по умолчанию 0
+        int habitPoints = getIntent().getIntExtra("habit_points", 100);
+        int currentStreak = getIntent().getIntExtra("habit_streak", 0);
 
         habitNameTextView = findViewById(R.id.habitNameTextView);
         habitPointsTextView = findViewById(R.id.habitPointsTextView);
