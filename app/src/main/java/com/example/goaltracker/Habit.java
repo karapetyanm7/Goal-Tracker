@@ -11,7 +11,7 @@ public class Habit {
     public Habit(String name) {
         this.name = name;
         this.points = 100;
-        this.completionCount = 0;
+        this.completionCount = 0; 
         this.maxStreak = 0;
         this.currentStreak = 0;
 
