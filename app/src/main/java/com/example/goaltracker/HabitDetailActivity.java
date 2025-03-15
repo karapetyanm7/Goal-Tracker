@@ -33,7 +33,7 @@ public class HabitDetailActivity extends AppCompatActivity {
         habitPointsTextView.setText("Points: " + habitPoints);
         habitStreakTextView.setText("Streak: " + currentStreak);
 
-
+ 
         if (habitPoints >= 500) {
             habitTreeImageView.setImageResource(R.drawable.tree_final);
         } else if (habitPoints >= 200) {
