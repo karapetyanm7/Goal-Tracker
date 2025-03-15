@@ -157,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
     private HashMap<String, Integer> loadStreaks() {
         HashMap<String, Integer> streakMap = new HashMap<>();
         for (String habit : habits) {
-            streakMap.put(habit, sharedPreferences.getInt(habit + "_streak", 0));
+            streakMap.put(habit, sharedPreferences.getInt(habit + " streak", 0));
         }
         return streakMap;
     }
@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
 
             deleteButton.setOnClickListener(v -> {
                 habits.remove(position);
-                streaks.remove(habit);
+                streaks.remove(habit); 
                 saveHabits();
                 saveStreaks();
                 updateHabitList();
