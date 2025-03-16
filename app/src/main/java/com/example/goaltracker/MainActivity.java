@@ -17,9 +17,15 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
+import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Calendar;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
     private ListView habitListView;
     private HabitAdapter habitAdapter;
     private SharedPreferences sharedPreferences;
+    private Button addButton;
+    private ActivityResultLauncher<Intent> habitDetailLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,24 +44,61 @@ public class MainActivity extends AppCompatActivity {
 
         sharedPreferences = getSharedPreferences("GoalTrackerPrefs", Context.MODE_PRIVATE);
 
-        habits = loadHabits();
+        habits = new ArrayList<>(sharedPreferences.getStringSet("habits", new HashSet<>()));
         streaks = loadStreaks();
 
         habitListView = findViewById(R.id.habitListView);
         habitAdapter = new HabitAdapter(this, habits);
         habitListView.setAdapter(habitAdapter);
 
-        habitListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String habit = habits.get(position);
-                Intent intent = new Intent(MainActivity.this, HabitDetailActivity.class);
-                intent.putExtra("habit", habit);
-                startActivity(intent);
-            }
-        });
+        addButton = findViewById(R.id.addButton);
 
-        Button addButton = findViewById(R.id.addButton);
+        habitDetailLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    String action = result.getData().getStringExtra("action");
+                    String habitName = result.getData().getStringExtra("habit_name");
+                    
+                    if ("delete".equals(action)) {
+                        habits.remove(habitName);
+                        streaks.remove(habitName);
+                        saveHabits();
+                        saveStreaks();
+                        habitAdapter.notifyDataSetChanged();
+                    } else if ("edit".equals(action)) {
+                        String oldName = result.getData().getStringExtra("old_habit_name");
+                        String newName = result.getData().getStringExtra("new_habit_name");
+                        int index = habits.indexOf(oldName);
+                        if (index != -1) {
+                            habits.set(index, newName);
+                            
+                            int streak = streaks.remove(oldName);
+                            streaks.put(newName, streak);
+                            
+                            int points = sharedPreferences.getInt(oldName + "_points", 0);
+                            long lastMarked = sharedPreferences.getLong(oldName + "_last_marked", 0);
+                            
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putInt(newName + "_points", points);
+                            editor.putLong(newName + "_last_marked", lastMarked);
+                            editor.remove(oldName + "_points");
+                            editor.remove(oldName + "_last_marked");
+                            editor.apply();
+                            
+                            saveHabits();
+                            saveStreaks();
+                            habitAdapter.notifyDataSetChanged();
+                        }
+                    } else if ("update".equals(action)) {
+                        int points = result.getData().getIntExtra("habit_points", 0);
+                        sharedPreferences.edit().putInt(habitName + "_points", points).apply();
+                        habitAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+        );
+
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -61,6 +106,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        habitListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String habit = habits.get(position);
+                Intent intent = new Intent(MainActivity.this, HabitDetailActivity.class);
+                intent.putExtra("habit_name", habit);
+                int points = sharedPreferences.getInt(habit + "_points", 100);
+                int streak = streaks.containsKey(habit) ? streaks.get(habit) : 0;
+                intent.putExtra("habit_points", points);
+                intent.putExtra("habit_streak", streak);
+                habitDetailLauncher.launch(intent);
+            }
+        });
     }
 
     private void showAddDialog() {
@@ -73,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
         builder.setPositiveButton("Add", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                String habitName = input.getText().toString();
+                String habitName = input.getText().toString().trim();
                 if (!habitName.isEmpty()) {
                     habits.add(habitName);
                     streaks.put(habitName, 0);
@@ -130,8 +188,6 @@ public class MainActivity extends AppCompatActivity {
         builder.show();
     }
 
-
-
     private void updateHabitList() {
         habitAdapter.notifyDataSetChanged();
     }
@@ -146,18 +202,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveHabits() {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt("habits_size", habits.size());
-        for (int i = 0; i < habits.size(); i++) {
-            editor.putString("habit_" + i, habits.get(i));
-        }
-        editor.apply();
+        Set<String> habitSet = new HashSet<>(habits);
+        sharedPreferences.edit().putStringSet("habits", habitSet).apply();
     }
 
     private HashMap<String, Integer> loadStreaks() {
         HashMap<String, Integer> streakMap = new HashMap<>();
         for (String habit : habits) {
-            streakMap.put(habit, sharedPreferences.getInt(habit + " streak", 0));
+            streakMap.put(habit, sharedPreferences.getInt(habit + "_streak", 0));
         }
         return streakMap;
     }
@@ -186,9 +238,6 @@ public class MainActivity extends AppCompatActivity {
             TextView streakText = convertView.findViewById(R.id.streakText);
             ImageView markCompleteButton = convertView.findViewById(R.id.markCompleteButton);
 
-            Button editButton = convertView.findViewById(R.id.editButton);
-            Button deleteButton = convertView.findViewById(R.id.deleteButton);
-
             String habit = getItem(position);
             habitText.setText(habit);
 
@@ -203,21 +252,34 @@ public class MainActivity extends AppCompatActivity {
                 streakText.setVisibility(View.GONE);
             }
 
+            long lastMarkedTime = sharedPreferences.getLong(habit + "_last_marked", 0);
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+            long startOfDay = calendar.getTimeInMillis();
+
+            markCompleteButton.setVisibility(lastMarkedTime < startOfDay ? View.VISIBLE : View.GONE);
+
             markCompleteButton.setOnClickListener(v -> {
+                int points = sharedPreferences.getInt(habit + "_points", 100);
+                points += 10;
                 streaks.put(habit, streak + 1);
+
+                long currentTime = Calendar.getInstance().getTimeInMillis();
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putLong(habit + "_last_marked", currentTime);
+                editor.putInt(habit + "_points", points);
+                editor.apply();
+                
                 saveStreaks();
+                
+                markCompleteButton.setVisibility(View.GONE);
+                
                 habitAdapter.notifyDataSetChanged();
+                Toast.makeText(getContext(), "+10 points added!", Toast.LENGTH_SHORT).show();
             });
-
-            deleteButton.setOnClickListener(v -> {
-                habits.remove(position);
-                streaks.remove(habit); 
-                saveHabits();
-                saveStreaks();
-                updateHabitList();
-            });
-
-            editButton.setOnClickListener(v -> showEditDialog(position));
 
             return convertView;
         }
