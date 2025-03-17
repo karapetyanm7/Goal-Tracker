@@ -35,6 +35,7 @@ public class HabitDetailActivity extends AppCompatActivity {
     private int habitPoints;
     private int currentStreak;
     private int maxStreak;
+    private boolean isMarked = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +48,15 @@ public class HabitDetailActivity extends AppCompatActivity {
         habitPoints = getIntent().getIntExtra("habit_points", 100);
         currentStreak = getIntent().getIntExtra("habit_streak", 0);
         maxStreak = Math.max(currentStreak, sharedPreferences.getInt(habitName + "_max_streak", 0));
+
+        long lastMarkedTime = sharedPreferences.getLong(habitName + "_last_marked", 0);
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        long startOfDay = calendar.getTimeInMillis();
+        isMarked = lastMarkedTime >= startOfDay;
 
         if (maxStreak > sharedPreferences.getInt(habitName + "_max_streak", 0)) {
             sharedPreferences.edit()
@@ -78,7 +88,7 @@ public class HabitDetailActivity extends AppCompatActivity {
         markCompleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (canMarkComplete()) {
+                if (!isMarked && canMarkComplete()) {
                     int basePoints = 10;
                     int bonusPoints = 0;
 
@@ -108,6 +118,10 @@ public class HabitDetailActivity extends AppCompatActivity {
                     currentStreak++;
 
                     if (currentStreak > maxStreak) {
+                        // Save the previous max streak before updating
+                        sharedPreferences.edit()
+                            .putInt(habitName + "_previous_max_streak", maxStreak)
+                            .apply();
                         maxStreak = currentStreak;
                     }
 
@@ -116,18 +130,40 @@ public class HabitDetailActivity extends AppCompatActivity {
                         .putLong(habitName + "_last_marked", currentTime)
                         .putInt(habitName + "_points", habitPoints)
                         .putInt(habitName + "_max_streak", maxStreak)
+                        .putInt(habitName + "_streak", currentStreak)
                         .apply();
-
-                    updateUI();
 
                     String message = "+" + basePoints + " points";
                     if (bonusPoints > 0) {
                         message += " (+" + bonusPoints + " streak bonus)";
                     }
                     Toast.makeText(HabitDetailActivity.this, message, Toast.LENGTH_SHORT).show();
+                } else if (isMarked) {
+
+                    habitPoints -= 10;
+                    currentStreak = Math.max(0, currentStreak - 1);
+
+                    int previousMaxStreak = sharedPreferences.getInt(habitName + "_previous_max_streak", 0);
+                    maxStreak = previousMaxStreak;
+
+                    if (currentStreak == 0) {
+                        maxStreak = 0;
+                    }
+                    
+                    sharedPreferences.edit()
+                        .remove(habitName + "_last_marked")
+                        .putInt(habitName + "_points", habitPoints)
+                        .putInt(habitName + "_streak", currentStreak)
+                        .putInt(habitName + "_max_streak", maxStreak)
+                        .apply();
+
+                    Toast.makeText(HabitDetailActivity.this, "Habit unmarked", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(HabitDetailActivity.this, "You can only mark complete once per day", Toast.LENGTH_SHORT).show();
                 }
+                
+                isMarked = !isMarked;
+                updateUI();
             }
         });
 
@@ -236,7 +272,8 @@ public class HabitDetailActivity extends AppCompatActivity {
         currentStreakIconImageView.setVisibility(currentStreak >= 1 ? View.VISIBLE : View.GONE);
         maxStreakIconImageView.setVisibility(maxStreak >= 1 ? View.VISIBLE : View.GONE);
 
-        markCompleteButton.setEnabled(canMarkComplete());
+        markCompleteButton.setText(isMarked ? "Unmark Complete" : "Mark Complete");
+        markCompleteButton.setEnabled(true);
     }
 
     @Override

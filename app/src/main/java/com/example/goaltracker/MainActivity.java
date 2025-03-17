@@ -115,6 +115,9 @@ public class MainActivity extends AppCompatActivity {
                     } else if ("update".equals(action)) {
                         int points = result.getData().getIntExtra("habit_points", 0);
                         sharedPreferences.edit().putInt(habitName + "_points", points).apply();
+                        int streak = sharedPreferences.getInt(habitName + "_streak", 0);
+                        streaks.put(habitName, streak);
+                        saveStreaks();
                         habitAdapter.notifyDataSetChanged();
                     }
                 }
@@ -289,26 +292,44 @@ public class MainActivity extends AppCompatActivity {
             calendar.set(Calendar.SECOND, 0);
             calendar.set(Calendar.MILLISECOND, 0);
             long startOfDay = calendar.getTimeInMillis();
+            boolean isMarked = lastMarkedTime >= startOfDay;
 
-            markCompleteButton.setVisibility(lastMarkedTime < startOfDay ? View.VISIBLE : View.GONE);
+            markCompleteButton.setVisibility(View.VISIBLE);
+            markCompleteButton.setImageResource(isMarked ? R.drawable.ic_unmark : R.drawable.ic_mark);
 
             markCompleteButton.setOnClickListener(v -> {
-                int points = sharedPreferences.getInt(habit + "_points", 100);
-                points += 10;
+                if (!isMarked) {
+                    // Mark complete
+                    int points = sharedPreferences.getInt(habit + "_points", 100);
+                    points += 10;
                 streaks.put(habit, streak + 1);
 
-                long currentTime = Calendar.getInstance().getTimeInMillis();
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putLong(habit + "_last_marked", currentTime);
-                editor.putInt(habit + "_points", points);
-                editor.apply();
-                
+                    long currentTime = Calendar.getInstance().getTimeInMillis();
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putLong(habit + "_last_marked", currentTime);
+                    editor.putInt(habit + "_points", points);
+                    editor.apply();
+                    
+                    saveStreaks();
+                    
+                    Toast.makeText(getContext(), "+10 points added!", Toast.LENGTH_SHORT).show();
+                } else {
+                    // Unmark complete
+                    int points = sharedPreferences.getInt(habit + "_points", 100);
+                    points = Math.max(0, points - 10);
+                    streaks.put(habit, Math.max(0, streak - 1));
+
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.remove(habit + "_last_marked");
+                    editor.putInt(habit + "_points", points);
+                    editor.apply();
+                    
                 saveStreaks();
-                
-                markCompleteButton.setVisibility(View.GONE);
+                    
+                    Toast.makeText(getContext(), "Habit unmarked", Toast.LENGTH_SHORT).show();
+                }
                 
                 habitAdapter.notifyDataSetChanged();
-                Toast.makeText(getContext(), "+10 points added!", Toast.LENGTH_SHORT).show();
             });
 
             return convertView;
