@@ -4,15 +4,36 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <ImageButton
-        android:id="@+id/backButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:src="@drawable/back_icon"
-        android:background="@color/lavender"
-        android:padding="12dp"
-        android:scaleType="fitCenter"
-        android:contentDescription="Back" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/back_icon"
+            android:background="@color/lavender"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="Back" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <ImageButton
+            android:id="@+id/deleteButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/delete_icon"
+            android:background="#FF0000"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="Delete Habit" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -20,15 +41,32 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/habitNameTextView"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Habit Name"
-            android:textSize="24sp"
+            android:orientation="horizontal"
             android:gravity="center"
-            android:layout_marginBottom="24dp"
-            android:textStyle="bold" />
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:id="@+id/habitNameTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Habit Name"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/editButton"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:src="@drawable/edit_icon"
+                android:background="?android:selectableItemBackgroundBorderless"
+                android:padding="4dp"
+                android:scaleType="fitCenter"
+                android:contentDescription="Edit Habit" />
+        </LinearLayout>
 
         <ImageView
             android:id="@+id/habitTreeImageView"
@@ -42,32 +80,6 @@
             android:layout_height="50dp"
             android:visibility="gone"
             android:src="@drawable/streak_fire" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="16dp">
-
-            <Button
-                android:id="@+id/editButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:text="Edit"
-                android:textSize="18sp" />
-
-            <Button
-                android:id="@+id/deleteButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Delete"
-                android:textSize="18sp"
-                android:backgroundTint="#FF0000" />
-
-        </LinearLayout>
 
         <Button
             android:id="@+id/markCompleteButton"

@@ -20,6 +20,8 @@ import androidx.appcompat.app.AlertDialog;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import android.widget.ImageButton;
+import androidx.appcompat.app.AppCompatDelegate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private HabitAdapter habitAdapter;
     private SharedPreferences sharedPreferences;
     private Button addButton;
+    private ImageButton themeToggleButton;
     private ActivityResultLauncher<Intent> habitDetailLauncher;
 
     @Override
@@ -52,6 +55,25 @@ public class MainActivity extends AppCompatActivity {
         habitListView.setAdapter(habitAdapter);
 
         addButton = findViewById(R.id.addButton);
+        themeToggleButton = findViewById(R.id.themeToggleButton);
+
+        boolean isDarkMode = sharedPreferences.getBoolean("dark_mode", false);
+        updateThemeToggleButton(isDarkMode);
+
+        themeToggleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean isDarkMode = sharedPreferences.getBoolean("dark_mode", false);
+                isDarkMode = !isDarkMode;
+                sharedPreferences.edit().putBoolean("dark_mode", isDarkMode).apply();
+                updateThemeToggleButton(isDarkMode);
+                if (isDarkMode) {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                } else {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                }
+            }
+        });
 
         habitDetailLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -119,6 +141,14 @@ public class MainActivity extends AppCompatActivity {
                 habitDetailLauncher.launch(intent);
             }
         });
+    }
+
+    private void updateThemeToggleButton(boolean isDarkMode) {
+        if (isDarkMode) {
+            themeToggleButton.setImageResource(R.drawable.light_icon);
+        } else {
+            themeToggleButton.setImageResource(R.drawable.dark_icon);
+        }
     }
 
     private void showAddDialog() {

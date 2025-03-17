@@ -27,8 +27,8 @@ public class HabitDetailActivity extends AppCompatActivity {
     private ImageView currentStreakIconImageView;
     private ImageView maxStreakIconImageView;
     private Button markCompleteButton;
-    private Button editButton;
-    private Button deleteButton;
+    private ImageButton editButton;
+    private ImageButton deleteButton;
     private ImageButton backButton;
     private SharedPreferences sharedPreferences;
     private String habitName;
@@ -120,7 +120,7 @@ public class HabitDetailActivity extends AppCompatActivity {
 
                     updateUI();
 
-                    String message = "+10 points";
+                    String message = "+" + basePoints + " points";
                     if (bonusPoints > 0) {
                         message += " (+" + bonusPoints + " streak bonus)";
                     }
@@ -224,7 +224,7 @@ public class HabitDetailActivity extends AppCompatActivity {
         habitPointsTextView.setText("Points: " + habitPoints);
         habitStreakTextView.setText("Current Streak: " + currentStreak);
         habitMaxStreakTextView.setText("Max Streak: " + maxStreak);
-
+ 
         if (habitPoints >= 500) {
             habitTreeImageView.setImageResource(R.drawable.tree_final);
         } else if (habitPoints >= 200) {
