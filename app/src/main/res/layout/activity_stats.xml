@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/back_icon"
+            android:background="@color/lavender"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="Back" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Statistics"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_gravity="center_vertical" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/weeklyStatsTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Weekly Completed Habits: 0"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/monthlyStatsTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Monthly Completed Habits: 0"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/currentMaxStreakTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Current Max Streak: None"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/allTimeMaxStreakTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="All-Time Max Streak: None"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/totalHabitsTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Total Habits: 0"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/totalCompletedTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Total Completed Habits: 0"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/streak10PlusTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Habits with 10+ Streak: 0"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/streak100PlusTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Habits with 100+ Streak: 0"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/streak1000PlusTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Habits with 1000+ Streak: 0"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout> 

@@ -38,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private Button addButton;
     private ImageButton themeToggleButton;
+    private ImageButton calendarButton;
+    private ImageButton statsButton;
     private ActivityResultLauncher<Intent> habitDetailLauncher;
 
     @Override
@@ -56,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
 
         addButton = findViewById(R.id.addButton);
         themeToggleButton = findViewById(R.id.themeToggleButton);
+        calendarButton = findViewById(R.id.calendarButton);
+        statsButton = findViewById(R.id.statsButton);
 
         boolean isDarkMode = sharedPreferences.getBoolean("dark_mode", false);
         updateThemeToggleButton(isDarkMode);
@@ -73,6 +77,16 @@ public class MainActivity extends AppCompatActivity {
                     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
                 }
             }
+        });
+
+        calendarButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, CalendarActivity.class);
+            startActivity(intent);
+        });
+
+        statsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, StatsActivity.class);
+            startActivity(intent);
         });
 
         habitDetailLauncher = registerForActivityResult(

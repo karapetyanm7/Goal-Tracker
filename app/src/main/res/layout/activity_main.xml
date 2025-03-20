@@ -7,12 +7,31 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:padding="8dp">
 
-        <View
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
+        <ImageButton
+            android:id="@+id/statsButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/stats_icon"
+            android:background="?android:selectableItemBackgroundBorderless"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="View Statistics"
+            android:layout_marginEnd="8dp"/>
+
+        <ImageButton
+            android:id="@+id/calendarButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/calendar_icon"
+            android:background="?android:selectableItemBackgroundBorderless"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="Calendar View"
+            android:layout_marginEnd="8dp"/>
 
         <ImageButton
             android:id="@+id/themeToggleButton"
@@ -22,7 +41,7 @@
             android:background="?android:selectableItemBackgroundBorderless"
             android:padding="12dp"
             android:scaleType="fitCenter"
-            android:contentDescription="Toggle Theme" />
+            android:contentDescription="Toggle Theme"/>
     </LinearLayout>
 
     <LinearLayout

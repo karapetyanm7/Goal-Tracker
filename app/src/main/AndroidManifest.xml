@@ -30,6 +30,13 @@
         <activity
             android:name=".SignupActivity"
             android:exported="false" />
+        <activity
+            android:name=".CalendarActivity"
+            android:exported="false" />
+        <activity
+            android:name=".HabitCalendarActivity"
+            android:exported="false" />
+        <activity android:name=".StatsActivity" />
     </application>
 
 </manifest>
