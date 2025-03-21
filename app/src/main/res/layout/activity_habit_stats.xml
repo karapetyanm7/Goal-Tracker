@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/back_icon"
+            android:background="@color/lavender"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="Back" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Habit Statistics"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_gravity="center_vertical" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/habitNameTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Habit Name"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_marginBottom="24dp" />
+
+            <TextView
+                android:id="@+id/completedEverTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Completed (Ever): 0"
+                android:textSize="18sp"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:id="@+id/completedThisWeekTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Completed This Week: 0"
+                android:textSize="18sp"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:id="@+id/completedThisMonthTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Completed This Month: 0"
+                android:textSize="18sp"
+                android:layout_marginBottom="16dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout> 

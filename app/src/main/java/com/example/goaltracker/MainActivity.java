@@ -22,12 +22,17 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import android.widget.ImageButton;
 import androidx.appcompat.app.AppCompatDelegate;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.widget.CheckBox;
+import android.widget.TimePicker;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,7 +45,11 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton themeToggleButton;
     private ImageButton calendarButton;
     private ImageButton statsButton;
+    private ImageButton reminderButton;
     private ActivityResultLauncher<Intent> habitDetailLauncher;
+    private ImageButton addHabitButton;
+    private AlarmManager alarmManager;
+    private PendingIntent pendingIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +69,13 @@ public class MainActivity extends AppCompatActivity {
         themeToggleButton = findViewById(R.id.themeToggleButton);
         calendarButton = findViewById(R.id.calendarButton);
         statsButton = findViewById(R.id.statsButton);
+        reminderButton = findViewById(R.id.reminderButton);
+
+        if (addButton == null || themeToggleButton == null || calendarButton == null || 
+            statsButton == null || reminderButton == null) {
+            Toast.makeText(this, "Error initializing buttons", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         boolean isDarkMode = sharedPreferences.getBoolean("dark_mode", false);
         updateThemeToggleButton(isDarkMode);
@@ -88,6 +104,8 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, StatsActivity.class);
             startActivity(intent);
         });
+
+        reminderButton.setOnClickListener(v -> showReminderDialog());
 
         habitDetailLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -158,6 +176,14 @@ public class MainActivity extends AppCompatActivity {
                 habitDetailLauncher.launch(intent);
             }
         });
+
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, NotificationReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
+        NotificationHelper.createNotificationChannel(this);
+
+        loadHabits();
     }
 
     private void updateThemeToggleButton(boolean isDarkMode) {
@@ -313,32 +339,36 @@ public class MainActivity extends AppCompatActivity {
 
             markCompleteButton.setOnClickListener(v -> {
                 if (!isMarked) {
-                    // Mark complete
                     int points = sharedPreferences.getInt(habit + "_points", 100);
                     points += 10;
-                streaks.put(habit, streak + 1);
+                    streaks.put(habit, streak + 1);
+                    int completedCount = sharedPreferences.getInt(habit + "_completed_count", 0);
+                    completedCount++;
 
                     long currentTime = Calendar.getInstance().getTimeInMillis();
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putLong(habit + "_last_marked", currentTime);
                     editor.putInt(habit + "_points", points);
+                    editor.putInt(habit + "_completed_count", completedCount);
                     editor.apply();
                     
                     saveStreaks();
                     
                     Toast.makeText(getContext(), "+10 points added!", Toast.LENGTH_SHORT).show();
                 } else {
-                    // Unmark complete
                     int points = sharedPreferences.getInt(habit + "_points", 100);
                     points = Math.max(0, points - 10);
                     streaks.put(habit, Math.max(0, streak - 1));
+                    int completedCount = sharedPreferences.getInt(habit + "_completed_count", 0);
+                    completedCount = Math.max(0, completedCount - 1);
 
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.remove(habit + "_last_marked");
                     editor.putInt(habit + "_points", points);
+                    editor.putInt(habit + "_completed_count", completedCount);
                     editor.apply();
                     
-                saveStreaks();
+                    saveStreaks();
                     
                     Toast.makeText(getContext(), "Habit unmarked", Toast.LENGTH_SHORT).show();
                 }
@@ -348,6 +378,194 @@ public class MainActivity extends AppCompatActivity {
 
             return convertView;
         }
+    }
+
+    private void showReminderDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_reminder, null);
+        builder.setView(dialogView);
+
+        CheckBox everydayCheckBox = dialogView.findViewById(R.id.everydayCheckBox);
+        CheckBox mondayCheckBox = dialogView.findViewById(R.id.mondayCheckBox);
+        CheckBox tuesdayCheckBox = dialogView.findViewById(R.id.tuesdayCheckBox);
+        CheckBox wednesdayCheckBox = dialogView.findViewById(R.id.wednesdayCheckBox);
+        CheckBox thursdayCheckBox = dialogView.findViewById(R.id.thursdayCheckBox);
+        CheckBox fridayCheckBox = dialogView.findViewById(R.id.fridayCheckBox);
+        CheckBox saturdayCheckBox = dialogView.findViewById(R.id.saturdayCheckBox);
+        CheckBox sundayCheckBox = dialogView.findViewById(R.id.sundayCheckBox);
+        CheckBox tomorrowCheckBox = dialogView.findViewById(R.id.tomorrowCheckBox);
+        CheckBox todayCheckBox = dialogView.findViewById(R.id.todayCheckBox);
+        TimePicker timePicker = dialogView.findViewById(R.id.timePicker);
+
+        builder.setPositiveButton("Set Reminder", (dialog, which) -> {
+            int hour = timePicker.getHour();
+            int minute = timePicker.getMinute();
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.HOUR_OF_DAY, hour);
+            calendar.set(Calendar.MINUTE, minute);
+            calendar.set(Calendar.SECOND, 0);
+
+            if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
+                calendar.add(Calendar.DAY_OF_YEAR, 1);
+            }
+
+            if (everydayCheckBox.isChecked()) {
+                scheduleDailyReminder(calendar);
+            } else if (tomorrowCheckBox.isChecked()) {
+                scheduleOneTimeReminder(calendar);
+            } else if (todayCheckBox.isChecked()) {
+                scheduleOneTimeReminderForToday(calendar);
+            } else {
+                int selectedDays = 0;
+                if (mondayCheckBox.isChecked()) selectedDays |= Calendar.MONDAY;
+                if (tuesdayCheckBox.isChecked()) selectedDays |= Calendar.TUESDAY;
+                if (wednesdayCheckBox.isChecked()) selectedDays |= Calendar.WEDNESDAY;
+                if (thursdayCheckBox.isChecked()) selectedDays |= Calendar.THURSDAY;
+                if (fridayCheckBox.isChecked()) selectedDays |= Calendar.FRIDAY;
+                if (saturdayCheckBox.isChecked()) selectedDays |= Calendar.SATURDAY;
+                if (sundayCheckBox.isChecked()) selectedDays |= Calendar.SUNDAY;
+
+                if (selectedDays != 0) {
+                    scheduleWeeklyReminder(calendar, selectedDays);
+                }
+            }
+        });
+
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
+    }
+
+    private void scheduleDailyReminder(Calendar calendar) {
+        if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
+            calendar.add(Calendar.DAY_OF_YEAR, 1);
+        }
+        
+        Intent intent = new Intent(this, NotificationReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        alarmManager.setRepeating(
+            AlarmManager.RTC_WAKEUP,
+            calendar.getTimeInMillis(),
+            AlarmManager.INTERVAL_DAY,
+            pendingIntent
+        );
+        Toast.makeText(this, "Daily reminder set for " + calendar.get(Calendar.HOUR_OF_DAY) + ":" + 
+            calendar.get(Calendar.MINUTE), Toast.LENGTH_SHORT).show();
+    }
+
+    private void scheduleWeeklyReminder(Calendar calendar, int selectedDays) {
+        cancelAllReminders();
+
+        int requestCode = 0;
+        Calendar now = Calendar.getInstance();
+        
+        for (int i = 0; i < 7; i++) {
+            if ((selectedDays & (1 << i)) != 0) {
+                Calendar dayCalendar = (Calendar) calendar.clone();
+                dayCalendar.set(Calendar.DAY_OF_WEEK, i);
+                if (dayCalendar.getTimeInMillis() <= now.getTimeInMillis()) {
+                    dayCalendar.add(Calendar.DAY_OF_YEAR, 7);
+                }
+
+                Intent intent = new Intent(this, NotificationReceiver.class);
+                PendingIntent dayIntent = PendingIntent.getBroadcast(
+                    this,
+                    requestCode++,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                );
+
+                alarmManager.setRepeating(
+                    AlarmManager.RTC_WAKEUP,
+                    dayCalendar.getTimeInMillis(),
+                    AlarmManager.INTERVAL_DAY * 7,
+                    dayIntent
+                );
+            }
+        }
+
+        String days = "";
+        if ((selectedDays & (1 << Calendar.MONDAY)) != 0) days += "Monday, ";
+        if ((selectedDays & (1 << Calendar.TUESDAY)) != 0) days += "Tuesday, ";
+        if ((selectedDays & (1 << Calendar.WEDNESDAY)) != 0) days += "Wednesday, ";
+        if ((selectedDays & (1 << Calendar.THURSDAY)) != 0) days += "Thursday, ";
+        if ((selectedDays & (1 << Calendar.FRIDAY)) != 0) days += "Friday, ";
+        if ((selectedDays & (1 << Calendar.SATURDAY)) != 0) days += "Saturday, ";
+        if ((selectedDays & (1 << Calendar.SUNDAY)) != 0) days += "Sunday, ";
+        
+        if (!days.isEmpty()) {
+            days = days.substring(0, days.length() - 2);
+            Toast.makeText(this, "Weekly reminders set for " + days + " at " + 
+                calendar.get(Calendar.HOUR_OF_DAY) + ":" + calendar.get(Calendar.MINUTE), 
+                Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void scheduleOneTimeReminder(Calendar calendar) {
+        Intent intent = new Intent(this, NotificationReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        alarmManager.set(
+            AlarmManager.RTC_WAKEUP,
+            calendar.getTimeInMillis(),
+            pendingIntent
+        );
+        Toast.makeText(this, "One-time reminder set for tomorrow at " + 
+            calendar.get(Calendar.HOUR_OF_DAY) + ":" + calendar.get(Calendar.MINUTE), 
+            Toast.LENGTH_SHORT).show();
+    }
+
+    private void scheduleOneTimeReminderForToday(Calendar calendar) {
+        if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
+            Toast.makeText(this, "Cannot set reminder for past time today", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent intent = new Intent(this, NotificationReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        alarmManager.set(
+            AlarmManager.RTC_WAKEUP,
+            calendar.getTimeInMillis(),
+            pendingIntent
+        );
+        Toast.makeText(this, "One-time reminder set for today at " + 
+            calendar.get(Calendar.HOUR_OF_DAY) + ":" + calendar.get(Calendar.MINUTE), 
+            Toast.LENGTH_SHORT).show();
+    }
+
+    private void cancelAllReminders() {
+        Intent intent = new Intent(this, NotificationReceiver.class);
+        for (int i = 0; i < 7; i++) {
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                this,
+                i,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            );
+            alarmManager.cancel(pendingIntent);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        cancelAllReminders();
     }
 }
 

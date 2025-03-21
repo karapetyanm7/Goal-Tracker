@@ -23,16 +23,15 @@ public class HabitDetailActivity extends AppCompatActivity {
     private TextView habitPointsTextView;
     private TextView habitStreakTextView;
     private TextView habitMaxStreakTextView;
-    private TextView habitCompletedCountTextView;
     private ImageView habitTreeImageView;
     private ImageView currentStreakIconImageView;
     private ImageView maxStreakIconImageView;
-    private ImageView completedCountIconImageView;
     private Button markCompleteButton;
     private ImageButton editButton;
     private ImageButton deleteButton;
     private ImageButton backButton;
     private ImageButton calendarButton;
+    private ImageButton statsButton;
     private SharedPreferences sharedPreferences;
     private String habitName;
     private int habitPoints;
@@ -73,16 +72,15 @@ public class HabitDetailActivity extends AppCompatActivity {
         habitPointsTextView = findViewById(R.id.habitPointsTextView);
         habitStreakTextView = findViewById(R.id.habitStreakTextView);
         habitMaxStreakTextView = findViewById(R.id.habitMaxStreakTextView);
-        habitCompletedCountTextView = findViewById(R.id.habitCompletedCountTextView);
         habitTreeImageView = findViewById(R.id.habitTreeImageView);
         currentStreakIconImageView = findViewById(R.id.currentStreakIconImageView);
         maxStreakIconImageView = findViewById(R.id.maxStreakIconImageView);
-        completedCountIconImageView = findViewById(R.id.completedCountIconImageView);
         markCompleteButton = findViewById(R.id.markCompleteButton);
         editButton = findViewById(R.id.editButton);
         deleteButton = findViewById(R.id.deleteButton);
         backButton = findViewById(R.id.backButton);
         calendarButton = findViewById(R.id.calendarButton);
+        statsButton = findViewById(R.id.statsButton);
 
         updateUI();
 
@@ -153,10 +151,7 @@ public class HabitDetailActivity extends AppCompatActivity {
                     habitPoints -= 10;
                     currentStreak = Math.max(0, currentStreak - 1);
                     completedCount = Math.max(0, completedCount - 1);
-
-                    int previousMaxStreak = sharedPreferences.getInt(habitName + "_previous_max_streak", 0);
-                    maxStreak = previousMaxStreak;
-
+                    
                     if (currentStreak == 0) {
                         maxStreak = 0;
                     }
@@ -196,6 +191,12 @@ public class HabitDetailActivity extends AppCompatActivity {
         calendarButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, HabitCalendarActivity.class);
             intent.putExtra("habit_name", habitName);
+            startActivity(intent);
+        });
+
+        statsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, HabitStatsActivity.class);
+            intent.putExtra("habitName", habitName);
             startActivity(intent);
         });
     }
@@ -278,7 +279,6 @@ public class HabitDetailActivity extends AppCompatActivity {
         habitPointsTextView.setText("Points: " + habitPoints);
         habitStreakTextView.setText("Current Streak: " + currentStreak);
         habitMaxStreakTextView.setText("Max Streak: " + maxStreak);
-        habitCompletedCountTextView.setText("Completed (Ever): " + completedCount);
  
         if (habitPoints >= 500) {
             habitTreeImageView.setImageResource(R.drawable.tree_final);
@@ -290,7 +290,6 @@ public class HabitDetailActivity extends AppCompatActivity {
 
         currentStreakIconImageView.setVisibility(currentStreak >= 1 ? View.VISIBLE : View.GONE);
         maxStreakIconImageView.setVisibility(maxStreak >= 1 ? View.VISIBLE : View.GONE);
-        completedCountIconImageView.setVisibility(completedCount >= 1 ? View.VISIBLE : View.GONE);
 
         markCompleteButton.setText(isMarked ? "Unmark Complete" : "Mark Complete");
         markCompleteButton.setEnabled(true);

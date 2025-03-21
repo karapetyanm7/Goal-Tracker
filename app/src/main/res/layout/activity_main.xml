@@ -34,6 +34,17 @@
             android:layout_marginEnd="8dp"/>
 
         <ImageButton
+            android:id="@+id/reminderButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/clock_icon"
+            android:background="?android:selectableItemBackgroundBorderless"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="Set Reminder"
+            android:layout_marginEnd="8dp"/>
+
+        <ImageButton
             android:id="@+id/themeToggleButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
