@@ -309,21 +309,11 @@ public class MainActivity extends AppCompatActivity {
             TextView habitText = convertView.findViewById(R.id.habitText);
             ImageView streakIcon = convertView.findViewById(R.id.streakIcon);
             TextView streakText = convertView.findViewById(R.id.streakText);
-            ImageView markCompleteButton = convertView.findViewById(R.id.markCompleteButton);
 
             String habit = getItem(position);
             habitText.setText(habit);
 
             int streak = streaks.containsKey(habit) ? streaks.get(habit) : 0;
-
-            if (streak >= 1) {
-                streakIcon.setVisibility(View.VISIBLE);
-                streakText.setVisibility(View.VISIBLE);
-                streakText.setText(" " + streak);
-            } else {
-                streakIcon.setVisibility(View.GONE);
-                streakText.setVisibility(View.GONE);
-            }
 
             long lastMarkedTime = sharedPreferences.getLong(habit + "_last_marked", 0);
             Calendar calendar = Calendar.getInstance();
@@ -334,47 +324,16 @@ public class MainActivity extends AppCompatActivity {
             long startOfDay = calendar.getTimeInMillis();
             boolean isMarked = lastMarkedTime >= startOfDay;
 
-            markCompleteButton.setVisibility(View.VISIBLE);
-            markCompleteButton.setImageResource(isMarked ? R.drawable.ic_unmark : R.drawable.ic_mark);
+            if (streak >= 1) {
+                streakIcon.setVisibility(View.VISIBLE);
+                streakText.setVisibility(View.VISIBLE);
+                streakText.setText(" " + streak);
 
-            markCompleteButton.setOnClickListener(v -> {
-                if (!isMarked) {
-                    int points = sharedPreferences.getInt(habit + "_points", 100);
-                    points += 10;
-                    streaks.put(habit, streak + 1);
-                    int completedCount = sharedPreferences.getInt(habit + "_completed_count", 0);
-                    completedCount++;
-
-                    long currentTime = Calendar.getInstance().getTimeInMillis();
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putLong(habit + "_last_marked", currentTime);
-                    editor.putInt(habit + "_points", points);
-                    editor.putInt(habit + "_completed_count", completedCount);
-                    editor.apply();
-                    
-                    saveStreaks();
-                    
-                    Toast.makeText(getContext(), "+10 points added!", Toast.LENGTH_SHORT).show();
-                } else {
-                    int points = sharedPreferences.getInt(habit + "_points", 100);
-                    points = Math.max(0, points - 10);
-                    streaks.put(habit, Math.max(0, streak - 1));
-                    int completedCount = sharedPreferences.getInt(habit + "_completed_count", 0);
-                    completedCount = Math.max(0, completedCount - 1);
-
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.remove(habit + "_last_marked");
-                    editor.putInt(habit + "_points", points);
-                    editor.putInt(habit + "_completed_count", completedCount);
-                    editor.apply();
-                    
-                    saveStreaks();
-                    
-                    Toast.makeText(getContext(), "Habit unmarked", Toast.LENGTH_SHORT).show();
-                }
-                
-                habitAdapter.notifyDataSetChanged();
-            });
+                streakIcon.setImageResource(isMarked ? R.drawable.streak_fire : R.drawable.streak_icon_u);
+            } else {
+                streakIcon.setVisibility(View.GONE);
+                streakText.setVisibility(View.GONE);
+            }
 
             return convertView;
         }
@@ -568,4 +527,3 @@ public class MainActivity extends AppCompatActivity {
         cancelAllReminders();
     }
 }
-

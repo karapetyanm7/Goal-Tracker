@@ -45,14 +45,14 @@ public class HabitStatsActivity extends AppCompatActivity {
     private void updateStats() {
         habitNameTextView.setText(habitName);
 
-        int completedCount = prefs.getInt(habitName + "_completed", 0);
-        completedEverTextView.setText("Completed (Ever): " + completedCount);
+        int completedCount = prefs.getInt(habitName + "_completed_count", 0);
+        completedEverTextView.setText(String.valueOf(completedCount));
 
         int completedThisWeek = calculateCompletedThisWeek();
-        completedThisWeekTextView.setText("Completed This Week: " + completedThisWeek);
+        completedThisWeekTextView.setText(String.valueOf(completedThisWeek));
 
         int completedThisMonth = calculateCompletedThisMonth();
-        completedThisMonthTextView.setText("Completed This Month: " + completedThisMonth);
+        completedThisMonthTextView.setText(String.valueOf(completedThisMonth));
     }
 
     private int calculateCompletedThisWeek() {
@@ -62,18 +62,13 @@ public class HabitStatsActivity extends AppCompatActivity {
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         calendar.set(Calendar.DAY_OF_WEEK, calendar.getFirstDayOfWeek());
+        long weekStart = calendar.getTimeInMillis();
 
-        Set<String> markedDates = prefs.getStringSet(habitName + "_markedDates", new HashSet<>());
-        int count = 0;
-
-        for (String dateStr : markedDates) {
-            long timestamp = Long.parseLong(dateStr);
-            if (timestamp >= calendar.getTimeInMillis()) {
-                count++;
-            }
+        long lastMarked = prefs.getLong(habitName + "_last_marked", 0);
+        if (lastMarked >= weekStart) {
+            return 1;
         }
-
-        return count;
+        return 0;
     }
 
     private int calculateCompletedThisMonth() {
@@ -83,17 +78,12 @@ public class HabitStatsActivity extends AppCompatActivity {
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
+        long monthStart = calendar.getTimeInMillis();
 
-        Set<String> markedDates = prefs.getStringSet(habitName + "_markedDates", new HashSet<>());
-        int count = 0;
-
-        for (String dateStr : markedDates) {
-            long timestamp = Long.parseLong(dateStr);
-            if (timestamp >= calendar.getTimeInMillis()) {
-                count++;
-            }
+        long lastMarked = prefs.getLong(habitName + "_last_marked", 0);
+        if (lastMarked >= monthStart) {
+            return 1;
         }
-
-        return count;
+        return 0;
     }
-} 
+}

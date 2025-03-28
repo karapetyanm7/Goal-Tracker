@@ -1,12 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#6200EE</color>
-    <color name="secondary">#03DAC6</color>
-    <color name="background">#FFFFFF</color>
-    <color name="text_primary">#000000</color>
-    <color name="text_secondary">#666666</color>
+    <!-- Primary Colors -->
+    <color name="colorPrimary">#4CAF50</color>
+    <color name="colorPrimaryDark">#388E3C</color>
+    <color name="colorAccent">#8BC34A</color>
+    <color name="primary">#4CAF50</color>
+    <color name="primary_dark">#388E3C</color>
+    <color name="accent">#8BC34A</color>
+    <color name="primary_light">#C8E6C9</color>
+    <color name="divider">#BDBDBD</color>
+    <color name="purple_500">#A020F0</color>
+    <color name="secondary">#8BC34A</color>
+    <color name="border">#E8F5E9</color>
     <color name="lavender">#E6E6FA</color>
-    <color name="border">#E0E0E0</color>
-    <color name="white">#FFFFFF</color>
-    <color name="purple_500">#6200EE</color>
+    
+
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_light">#FFFFFF</color>
+    
+
+    <color name="background">#E8F5E9</color>
+    <color name="background_light">#F5F5F5</color>
+    <color name="dark_green">#2E7D32</color>
+    
+
+    <color name="streak_active">#FFC107</color>
+    <color name="streak_inactive">#9E9E9E</color>
+    <color name="streak_background">#1B5E20</color>
+
+    <color name="success">#4CAF50</color>
+    <color name="warning">#FFC107</color>
+    <color name="error">#F44336</color>
+    
+    <!-- Removed colors: 
+    <color name="ripple">#1F000000</color>
+    <color name="shadow">#1A000000</color>
+    <color name="card_background">#2E7D32</color> -->
 </resources>

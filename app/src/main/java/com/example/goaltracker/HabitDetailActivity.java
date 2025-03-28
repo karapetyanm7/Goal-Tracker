@@ -16,6 +16,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.widget.ImageButton;
 
 import java.util.Calendar;
+import java.util.HashSet;
+import java.util.Set;
 
 public class HabitDetailActivity extends AppCompatActivity {
 
@@ -53,14 +55,32 @@ public class HabitDetailActivity extends AppCompatActivity {
         maxStreak = Math.max(currentStreak, sharedPreferences.getInt(habitName + "_max_streak", 0));
         completedCount = sharedPreferences.getInt(habitName + "_completed_count", 0);
 
-        long lastMarkedTime = sharedPreferences.getLong(habitName + "_last_marked", 0);
         Calendar calendar = Calendar.getInstance();
+        long currentTime = calendar.getTimeInMillis();
+        calendar.add(Calendar.DAY_OF_YEAR, -1); // Go back one day
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        long startOfDay = calendar.getTimeInMillis();
-        isMarked = lastMarkedTime >= startOfDay;
+        long yesterdayStart = calendar.getTimeInMillis();
+        calendar.add(Calendar.DAY_OF_YEAR, 1);
+        long todayStart = calendar.getTimeInMillis();
+
+        long lastMarkedTime = sharedPreferences.getLong(habitName + "_last_marked", 0);
+
+        if (lastMarkedTime < yesterdayStart && currentStreak > 0) {
+            currentStreak = 0;
+            habitPoints = Math.max(0, habitPoints - 5);
+            
+            sharedPreferences.edit()
+                .putInt(habitName + "_streak", currentStreak)
+                .putInt(habitName + "_points", habitPoints)
+                .apply();
+                
+            Toast.makeText(this, "Streak lost! -5 points", Toast.LENGTH_SHORT).show();
+        }
+
+        isMarked = lastMarkedTime >= todayStart;
 
         if (maxStreak > sharedPreferences.getInt(habitName + "_max_streak", 0)) {
             sharedPreferences.edit()
@@ -95,6 +115,13 @@ public class HabitDetailActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (!isMarked && canMarkComplete()) {
+                    sharedPreferences.edit()
+                        .putInt(habitName + "_previous_points", habitPoints)
+                        .putInt(habitName + "_previous_streak", currentStreak)
+                        .putInt(habitName + "_previous_completed", completedCount)
+                        .putInt(habitName + "_previous_max_streak", maxStreak)
+                        .apply();
+
                     int basePoints = 10;
                     int bonusPoints = 0;
 
@@ -126,10 +153,9 @@ public class HabitDetailActivity extends AppCompatActivity {
                     currentStreak++;
                     completedCount++;
 
+                    int totalPointsAwarded = basePoints + bonusPoints;
+
                     if (currentStreak > maxStreak) {
-                        sharedPreferences.edit()
-                            .putInt(habitName + "_previous_max_streak", maxStreak)
-                            .apply();
                         maxStreak = currentStreak;
                     }
 
@@ -140,6 +166,7 @@ public class HabitDetailActivity extends AppCompatActivity {
                         .putInt(habitName + "_max_streak", maxStreak)
                         .putInt(habitName + "_streak", currentStreak)
                         .putInt(habitName + "_completed_count", completedCount)
+                        .putInt(habitName + "_last_points_awarded", totalPointsAwarded)
                         .apply();
 
                     String message = "+" + basePoints + " points";
@@ -147,30 +174,33 @@ public class HabitDetailActivity extends AppCompatActivity {
                         message += " (+" + bonusPoints + " streak bonus)";
                     }
                     Toast.makeText(HabitDetailActivity.this, message, Toast.LENGTH_SHORT).show();
+
+                    isMarked = true;
+                    updateUI();
                 } else if (isMarked) {
-                    habitPoints -= 10;
-                    currentStreak = Math.max(0, currentStreak - 1);
-                    completedCount = Math.max(0, completedCount - 1);
-                    
-                    if (currentStreak == 0) {
-                        maxStreak = 0;
-                    }
+                    habitPoints = sharedPreferences.getInt(habitName + "_previous_points", habitPoints);
+                    currentStreak = sharedPreferences.getInt(habitName + "_previous_streak", currentStreak);
+                    completedCount = sharedPreferences.getInt(habitName + "_previous_completed", completedCount);
+                    maxStreak = Math.max(currentStreak, sharedPreferences.getInt(habitName + "_previous_max_streak", maxStreak));
                     
                     sharedPreferences.edit()
                         .remove(habitName + "_last_marked")
+                        .remove(habitName + "_last_points_awarded")
+                        .remove(habitName + "_previous_points")
+                        .remove(habitName + "_previous_streak")
+                        .remove(habitName + "_previous_completed")
+                        .remove(habitName + "_previous_max_streak")
                         .putInt(habitName + "_points", habitPoints)
                         .putInt(habitName + "_streak", currentStreak)
-                        .putInt(habitName + "_max_streak", maxStreak)
                         .putInt(habitName + "_completed_count", completedCount)
+                        .putInt(habitName + "_max_streak", maxStreak)
                         .apply();
 
                     Toast.makeText(HabitDetailActivity.this, "Habit unmarked", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(HabitDetailActivity.this, "You can only mark complete once per day", Toast.LENGTH_SHORT).show();
+                    
+                    isMarked = false;
+                    updateUI();
                 }
-                
-                isMarked = !isMarked;
-                updateUI();
             }
         });
 
@@ -201,6 +231,41 @@ public class HabitDetailActivity extends AppCompatActivity {
         });
     }
 
+    private boolean canMarkComplete() {
+        long lastMarkedTime = sharedPreferences.getLong(habitName + "_last_marked", 0);
+        long currentTime = Calendar.getInstance().getTimeInMillis();
+        
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        long startOfDay = calendar.getTimeInMillis();
+        
+        return lastMarkedTime < startOfDay;
+    }
+
+    private void updateUI() {
+        habitNameTextView.setText(habitName);
+        habitPointsTextView.setText("Points: " + habitPoints);
+        habitStreakTextView.setText("Current Streak: " + currentStreak);
+        habitMaxStreakTextView.setText("Max Streak: " + maxStreak);
+
+        markCompleteButton.setText(isMarked ? "Unmark Complete" : "Mark Complete");
+        markCompleteButton.setEnabled(true);
+
+        currentStreakIconImageView.setVisibility(currentStreak > 0 ? View.VISIBLE : View.GONE);
+        maxStreakIconImageView.setVisibility(maxStreak > 0 ? View.VISIBLE : View.GONE);
+
+        if (habitPoints >= 500) {
+            habitTreeImageView.setImageResource(R.drawable.tree_final);
+        } else if (habitPoints >= 200) {
+            habitTreeImageView.setImageResource(R.drawable.tree_stage2);
+        } else {
+            habitTreeImageView.setImageResource(R.drawable.tree_normal);
+        }
+    }
+
     private void showEditDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Edit Habit");
@@ -212,26 +277,42 @@ public class HabitDetailActivity extends AppCompatActivity {
         builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                String newHabitName = input.getText().toString();
-                if (!newHabitName.isEmpty()) {
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra("old_habit_name", habitName);
-                    resultIntent.putExtra("new_habit_name", newHabitName);
-                    resultIntent.putExtra("action", "edit");
-                    setResult(RESULT_OK, resultIntent);
-                    finish();
+                String newName = input.getText().toString().trim();
+                if (!newName.isEmpty() && !newName.equals(habitName)) {
+                    updateHabitName(newName);
                 }
             }
         });
-
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
+        builder.setNegativeButton("Cancel", null);
 
         builder.show();
+    }
+
+    private void updateHabitName(String newName) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        editor.putInt(newName + "_points", habitPoints);
+        editor.putInt(newName + "_streak", currentStreak);
+        editor.putInt(newName + "_max_streak", maxStreak);
+        editor.putInt(newName + "_completed_count", completedCount);
+        editor.putLong(newName + "_last_marked", sharedPreferences.getLong(habitName + "_last_marked", 0));
+
+        editor.remove(habitName + "_points");
+        editor.remove(habitName + "_streak");
+        editor.remove(habitName + "_max_streak");
+        editor.remove(habitName + "_completed_count");
+        editor.remove(habitName + "_last_marked");
+
+        Set<String> habits = new HashSet<>(sharedPreferences.getStringSet("habits", new HashSet<>()));
+        habits.remove(habitName);
+        habits.add(newName);
+        editor.putStringSet("habits", habits);
+        
+        editor.apply();
+
+        habitName = newName;
+        habitNameTextView.setText(habitName);
+        Toast.makeText(this, "Habit renamed", Toast.LENGTH_SHORT).show();
     }
 
     private void showDeleteConfirmationDialog() {
@@ -258,41 +339,6 @@ public class HabitDetailActivity extends AppCompatActivity {
         });
 
         builder.show();
-    }
-
-    private boolean canMarkComplete() {
-        long lastMarkedTime = sharedPreferences.getLong(habitName + "_last_marked", 0);
-        long currentTime = Calendar.getInstance().getTimeInMillis();
-        
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        long startOfDay = calendar.getTimeInMillis();
-        
-        return lastMarkedTime < startOfDay;
-    }
-
-    private void updateUI() {
-        habitNameTextView.setText(habitName);
-        habitPointsTextView.setText("Points: " + habitPoints);
-        habitStreakTextView.setText("Current Streak: " + currentStreak);
-        habitMaxStreakTextView.setText("Max Streak: " + maxStreak);
- 
-        if (habitPoints >= 500) {
-            habitTreeImageView.setImageResource(R.drawable.tree_final);
-        } else if (habitPoints >= 200) {
-            habitTreeImageView.setImageResource(R.drawable.tree_stage2);
-        } else {
-            habitTreeImageView.setImageResource(R.drawable.tree_normal);
-        }
-
-        currentStreakIconImageView.setVisibility(currentStreak >= 1 ? View.VISIBLE : View.GONE);
-        maxStreakIconImageView.setVisibility(maxStreak >= 1 ? View.VISIBLE : View.GONE);
-
-        markCompleteButton.setText(isMarked ? "Unmark Complete" : "Mark Complete");
-        markCompleteButton.setEnabled(true);
     }
 
     @Override

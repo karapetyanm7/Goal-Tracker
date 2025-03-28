@@ -11,6 +11,7 @@
         android:text="Set a reminder for habits"
         android:textSize="20sp"
         android:textStyle="bold"
+        android:textColor="#000000"
         android:gravity="center"
         android:layout_marginBottom="16dp" />
 
@@ -30,6 +31,7 @@
                 android:layout_height="wrap_content"
                 android:text="Everyday"
                 android:textSize="16sp"
+                android:textColor="#000000"
                 android:padding="8dp" />
 
             <CheckBox
@@ -38,6 +40,7 @@
                 android:layout_height="wrap_content"
                 android:text="Every Monday"
                 android:textSize="16sp"
+                android:textColor="#000000"
                 android:padding="8dp" />
 
             <CheckBox
@@ -46,6 +49,7 @@
                 android:layout_height="wrap_content"
                 android:text="Every Tuesday"
                 android:textSize="16sp"
+                android:textColor="#000000"
                 android:padding="8dp" />
 
             <CheckBox
@@ -54,6 +58,7 @@
                 android:layout_height="wrap_content"
                 android:text="Every Wednesday"
                 android:textSize="16sp"
+                android:textColor="#000000"
                 android:padding="8dp" />
 
             <CheckBox
@@ -62,6 +67,7 @@
                 android:layout_height="wrap_content"
                 android:text="Every Thursday"
                 android:textSize="16sp"
+                android:textColor="#000000"
                 android:padding="8dp" />
 
             <CheckBox
@@ -70,6 +76,7 @@
                 android:layout_height="wrap_content"
                 android:text="Every Friday"
                 android:textSize="16sp"
+                android:textColor="#000000"
                 android:padding="8dp" />
 
             <CheckBox
@@ -78,6 +85,7 @@
                 android:layout_height="wrap_content"
                 android:text="Every Saturday"
                 android:textSize="16sp"
+                android:textColor="#000000"
                 android:padding="8dp" />
 
             <CheckBox
@@ -86,6 +94,7 @@
                 android:layout_height="wrap_content"
                 android:text="Every Sunday"
                 android:textSize="16sp"
+                android:textColor="#000000"
                 android:padding="8dp" />
 
             <CheckBox
@@ -94,6 +103,7 @@
                 android:layout_height="wrap_content"
                 android:text="Only For Tomorrow"
                 android:textSize="16sp"
+                android:textColor="#000000"
                 android:padding="8dp" />
 
             <CheckBox
@@ -102,6 +112,7 @@
                 android:layout_height="wrap_content"
                 android:text="Only For Today"
                 android:textSize="16sp"
+                android:textColor="#000000"
                 android:padding="8dp" />
         </LinearLayout>
     </ScrollView>
@@ -110,6 +121,7 @@
         android:id="@+id/timePicker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:timePickerMode="spinner" />
+        android:timePickerMode="spinner"
+        android:theme="@style/TimePickerBlackText" />
 
-</LinearLayout> 
+</LinearLayout>
