@@ -4,14 +4,28 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#CCFFCC">
+    android:background="@color/app_background">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="end"
         android:padding="8dp">
+
+        <ImageButton
+            android:id="@+id/profile_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/user_icon"
+            android:background="?android:selectableItemBackgroundBorderless"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="User Profile" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
 
         <ImageButton
             android:id="@+id/statsButton"

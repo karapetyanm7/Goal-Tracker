@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/background">
+    android:background="@color/app_background">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -97,6 +97,17 @@
                     android:padding="4dp"
                     android:scaleType="fitCenter"
                     android:contentDescription="View Statistics" />
+
+                <ImageButton
+                    android:id="@+id/reminderButton"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/clock_icon"
+                    android:background="?android:selectableItemBackgroundBorderless"
+                    android:padding="4dp"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="Set Reminder" />
             </LinearLayout>
         </LinearLayout>
 

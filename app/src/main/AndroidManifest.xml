@@ -3,8 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.goaltracker">
 
+    <!-- For Android 12 (API level 31) and 32 -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- For Android 13 (API level 33)+ -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="true"
@@ -21,18 +27,26 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ReminderActivity"
+            android:exported="false" />
         <activity
             android:name=".HabitDetailActivity"
             android:exported="false" />
         <activity
             android:name=".LoginActivity"
             android:exported="false" />
-        <activity
-            android:name=".SignupActivity"
-            android:exported="false" />
+        <activity android:name=".SignupActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".CalendarActivity"
             android:exported="false" />
@@ -41,7 +55,21 @@
             android:exported="false" />
         <activity android:name=".StatsActivity" />
         <activity android:name=".HabitStatsActivity" />
-        <receiver android:name=".NotificationReceiver" />
+        <activity 
+            android:name=".ProfileActivity"
+            android:exported="false" />
+
+        <receiver android:name=".NotificationReceiver" 
+                  android:exported="false" />
+        
+        <!-- For alarms to persist across device reboots -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

@@ -31,14 +31,11 @@ public class NotificationHelper {
     public static void createNotificationChannel(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID,
-                CHANNEL_NAME,
+                "habit_reminders",
+                "Habit Reminders",
                 NotificationManager.IMPORTANCE_HIGH
             );
-            channel.setDescription(CHANNEL_DESCRIPTION);
-            channel.enableVibration(true);
-            channel.enableLights(true);
-            channel.setLightColor(android.graphics.Color.BLUE);
+            channel.setDescription("Notifications for habit reminders");
             
             NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);

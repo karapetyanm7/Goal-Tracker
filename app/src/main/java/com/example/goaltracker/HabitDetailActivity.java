@@ -14,6 +14,10 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import android.widget.ImageButton;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.widget.CheckBox;
+import android.widget.TimePicker;
 
 import java.util.Calendar;
 import java.util.HashSet;
@@ -34,6 +38,7 @@ public class HabitDetailActivity extends AppCompatActivity {
     private ImageButton backButton;
     private ImageButton calendarButton;
     private ImageButton statsButton;
+    private ImageButton reminderButton;
     private SharedPreferences sharedPreferences;
     private String habitName;
     private int habitPoints;
@@ -41,6 +46,8 @@ public class HabitDetailActivity extends AppCompatActivity {
     private int maxStreak;
     private int completedCount;
     private boolean isMarked = false;
+    private AlarmManager alarmManager;
+    private PendingIntent pendingIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +57,12 @@ public class HabitDetailActivity extends AppCompatActivity {
         sharedPreferences = getSharedPreferences("GoalTrackerPrefs", Context.MODE_PRIVATE);
 
         habitName = getIntent().getStringExtra("habit_name");
+        if (habitName == null) {
+            Toast.makeText(this, "Error: Habit name not found", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         habitPoints = getIntent().getIntExtra("habit_points", 100);
         currentStreak = getIntent().getIntExtra("habit_streak", 0);
         maxStreak = Math.max(currentStreak, sharedPreferences.getInt(habitName + "_max_streak", 0));
@@ -101,6 +114,17 @@ public class HabitDetailActivity extends AppCompatActivity {
         backButton = findViewById(R.id.backButton);
         calendarButton = findViewById(R.id.calendarButton);
         statsButton = findViewById(R.id.statsButton);
+        reminderButton = findViewById(R.id.reminderButton);
+
+        if (habitNameTextView == null || habitPointsTextView == null || habitStreakTextView == null ||
+            habitMaxStreakTextView == null || habitTreeImageView == null || currentStreakIconImageView == null ||
+            maxStreakIconImageView == null || markCompleteButton == null || editButton == null ||
+            deleteButton == null || backButton == null || calendarButton == null ||
+            statsButton == null || reminderButton == null) {
+            Toast.makeText(this, "Error initializing views", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         updateUI();
 
@@ -177,7 +201,7 @@ public class HabitDetailActivity extends AppCompatActivity {
 
                     isMarked = true;
                     updateUI();
-                } else if (isMarked) {
+                } else {
                     habitPoints = sharedPreferences.getInt(habitName + "_previous_points", habitPoints);
                     currentStreak = sharedPreferences.getInt(habitName + "_previous_streak", currentStreak);
                     completedCount = sharedPreferences.getInt(habitName + "_previous_completed", completedCount);
@@ -229,6 +253,17 @@ public class HabitDetailActivity extends AppCompatActivity {
             intent.putExtra("habitName", habitName);
             startActivity(intent);
         });
+
+        reminderButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ReminderActivity.class);
+            startActivity(intent);
+        });
+
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, NotificationReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
+        NotificationHelper.createNotificationChannel(this);
     }
 
     private boolean canMarkComplete() {
@@ -256,7 +291,7 @@ public class HabitDetailActivity extends AppCompatActivity {
 
         currentStreakIconImageView.setVisibility(currentStreak > 0 ? View.VISIBLE : View.GONE);
         maxStreakIconImageView.setVisibility(maxStreak > 0 ? View.VISIBLE : View.GONE);
-
+ 
         if (habitPoints >= 500) {
             habitTreeImageView.setImageResource(R.drawable.tree_final);
         } else if (habitPoints >= 200) {
@@ -270,49 +305,47 @@ public class HabitDetailActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Edit Habit");
 
-        final EditText input = new EditText(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_habit, null);
+        if (dialogView == null) {
+            Toast.makeText(this, "Error creating dialog", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        EditText input = dialogView.findViewById(R.id.habitNameInput);
+        if (input == null) {
+            Toast.makeText(this, "Error finding input field", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         input.setText(habitName);
-        builder.setView(input);
+        input.setTextColor(getResources().getColor(android.R.color.black, getTheme()));
+        builder.setView(dialogView);
 
         builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String newName = input.getText().toString().trim();
                 if (!newName.isEmpty() && !newName.equals(habitName)) {
-                    updateHabitName(newName);
+                    String oldName = habitName; // Store the old name before updating
+                    
+                    // Send result back to MainActivity
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("action", "edit");
+                    resultIntent.putExtra("old_habit_name", oldName);
+                    resultIntent.putExtra("new_habit_name", newName);
+                    setResult(RESULT_OK, resultIntent);
+                    
+                    Toast.makeText(HabitDetailActivity.this, "Habit renamed", Toast.LENGTH_SHORT).show();
+                    
+                    // Finish the activity to ensure proper data update
+                    finish();
                 }
             }
         });
         builder.setNegativeButton("Cancel", null);
-
-        builder.show();
-    }
-
-    private void updateHabitName(String newName) {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-
-        editor.putInt(newName + "_points", habitPoints);
-        editor.putInt(newName + "_streak", currentStreak);
-        editor.putInt(newName + "_max_streak", maxStreak);
-        editor.putInt(newName + "_completed_count", completedCount);
-        editor.putLong(newName + "_last_marked", sharedPreferences.getLong(habitName + "_last_marked", 0));
-
-        editor.remove(habitName + "_points");
-        editor.remove(habitName + "_streak");
-        editor.remove(habitName + "_max_streak");
-        editor.remove(habitName + "_completed_count");
-        editor.remove(habitName + "_last_marked");
-
-        Set<String> habits = new HashSet<>(sharedPreferences.getStringSet("habits", new HashSet<>()));
-        habits.remove(habitName);
-        habits.add(newName);
-        editor.putStringSet("habits", habits);
-        
-        editor.apply();
-
-        habitName = newName;
-        habitNameTextView.setText(habitName);
-        Toast.makeText(this, "Habit renamed", Toast.LENGTH_SHORT).show();
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.white);
+        dialog.show();
     }
 
     private void showDeleteConfirmationDialog() {
@@ -342,6 +375,12 @@ public class HabitDetailActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        cancelAllReminders();
+    }
+
+    @Override
     public void onBackPressed() {
         Intent resultIntent = new Intent();
         resultIntent.putExtra("habit_name", habitName);
@@ -349,5 +388,18 @@ public class HabitDetailActivity extends AppCompatActivity {
         resultIntent.putExtra("action", "update");
         setResult(RESULT_OK, resultIntent);
         super.onBackPressed();
+    }
+
+    private void cancelAllReminders() {
+        Intent intent = new Intent(this, NotificationReceiver.class);
+        for (int i = 0; i < 7; i++) {
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                this,
+                i,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            );
+            alarmManager.cancel(pendingIntent);
+        }
     }
 }

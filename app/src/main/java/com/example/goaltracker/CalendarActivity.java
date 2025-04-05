@@ -84,27 +84,26 @@ public class CalendarActivity extends AppCompatActivity {
             String formattedDate = dateFormat.format(selectedDate);
             selectedDateTextView.setText("Selected Date: " + formattedDate);
 
-
             completedHabits.clear();
-
-
             Set<String> habits = sharedPreferences.getStringSet("habits", new HashSet<>());
+
+            Calendar selectedCal = Calendar.getInstance();
+            selectedCal.setTimeInMillis(dateInMillis);
+            selectedCal.set(Calendar.HOUR_OF_DAY, 0);
+            selectedCal.set(Calendar.MINUTE, 0);
+            selectedCal.set(Calendar.SECOND, 0);
+            selectedCal.set(Calendar.MILLISECOND, 0);
+            long selectedDayStart = selectedCal.getTimeInMillis();
+            
+            selectedCal.add(Calendar.DAY_OF_MONTH, 1);
+            long selectedDayEnd = selectedCal.getTimeInMillis();
 
             for (String habit : habits) {
                 long lastMarkedTime = sharedPreferences.getLong(habit + "_last_marked", 0);
-                if (lastMarkedTime > 0) {
-                    Calendar habitCal = Calendar.getInstance();
-                    habitCal.setTimeInMillis(lastMarkedTime);
-                    
-                    Calendar selectedCal = Calendar.getInstance();
-                    selectedCal.setTimeInMillis(dateInMillis);
-                    
-                    if (isSameDay(habitCal, selectedCal)) {
-                        completedHabits.add(habit);
-                    }
+                if (lastMarkedTime >= selectedDayStart && lastMarkedTime < selectedDayEnd) {
+                    completedHabits.add(habit);
                 }
             }
-
 
             habitsAdapter.notifyDataSetChanged();
 
