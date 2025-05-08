@@ -18,46 +18,97 @@
         android:scaleType="fitCenter"
         android:contentDescription="Back" />
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:gravity="center_horizontal"
+        android:layout_above="@id/profile_logout_button"
         android:layout_below="@id/profile_back_button">
 
-        <ImageView
-            android:id="@+id/profile_image"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:src="@drawable/user_icon"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="24dp"
-            android:contentDescription="Profile Image" />
-
-        <TextView
-            android:id="@+id/profile_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="User Name"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
-
-        <TextView
-            android:id="@+id/profile_email"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="user@example.com"
-            android:textSize="18sp"
-            android:layout_marginBottom="32dp" />
-
-        <View
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/divider"
-            android:layout_marginBottom="32dp" />
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:gravity="center_horizontal">
+
+            <ImageView
+                android:id="@+id/profile_image"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:src="@drawable/user_icon"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="24dp"
+                android:contentDescription="Profile Image" />
+
+            <LinearLayout
+                android:id="@+id/name_display_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:id="@+id/profile_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="User Name"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/edit_name_button"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@drawable/edit_icon"
+                    android:background="?android:selectableItemBackgroundBorderless"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="Edit Name" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/name_edit_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone">
+
+                <EditText
+                    android:id="@+id/edit_name_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Enter new name"
+                    android:inputType="textPersonName"
+                    android:maxLines="1" />
+
+                <Button
+                    android:id="@+id/save_name_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Save"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/profile_email"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="user@example.com"
+                android:textSize="18sp"
+                android:layout_marginBottom="32dp" />
+
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/divider"
+                android:layout_marginBottom="16dp" />
+
+        </LinearLayout>
+    </ScrollView>
 
     <Button
         android:id="@+id/profile_logout_button"

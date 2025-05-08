@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/app_background">
+    android:id="@+id/habit_detail_root_layout">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -117,6 +117,17 @@
             android:layout_height="200dp"
             android:src="@drawable/tree_normal" />
 
+        <TextView
+            android:id="@+id/motivationalTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Small daily improvements lead to extraordinary long-term results."
+            android:textSize="16sp"
+            android:textStyle="italic"
+            android:gravity="center"
+            android:padding="16dp"
+            android:textColor="@color/text_primary" />
+
         <ImageView
             android:id="@+id/streakIconImageView"
             android:layout_width="50dp"
@@ -138,6 +149,7 @@
             android:orientation="vertical"
             android:layout_marginTop="24dp"
             android:padding="16dp"
+            android:id="@+id/stats_container"
             android:background="@drawable/stats_border">
 
             <TextView

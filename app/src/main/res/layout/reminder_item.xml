@@ -59,8 +59,8 @@
             android:layout_marginStart="8dp"
             android:background="@android:color/transparent"
             android:contentDescription="Delete Reminder"
-            android:src="@drawable/delete_icon"
-            android:tint="#FF0000"
+            android:src="@drawable/ic_delete"
+            android:padding="8dp"
             tools:ignore="UseAppTint" />
 
     </RelativeLayout>

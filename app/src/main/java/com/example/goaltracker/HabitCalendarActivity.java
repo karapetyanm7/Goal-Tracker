@@ -27,6 +27,9 @@ public class HabitCalendarActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        ThemeManager.applyTheme(this);
+        
         setContentView(R.layout.activity_calendar);
 
         sharedPreferences = getSharedPreferences("GoalTrackerPrefs", MODE_PRIVATE);
@@ -38,6 +41,10 @@ public class HabitCalendarActivity extends AppCompatActivity {
         selectedDateTextView = findViewById(R.id.selectedDateTextView);
         completedHabitsListView = findViewById(R.id.completedHabitsListView);
         ImageButton backButton = findViewById(R.id.backButton);
+        
+        ThemeManager.applyNavigationButtonStyle(backButton);
+
+        applyThemeColors();
 
         habitsAdapter = new ArrayAdapter<>(this, 
             R.layout.calendar_list_item, android.R.id.text1, completedHabits);
@@ -80,5 +87,35 @@ public class HabitCalendarActivity extends AppCompatActivity {
         }
 
         habitsAdapter.notifyDataSetChanged();
+    }
+    
+
+    private void applyThemeColors() {
+
+        int primaryColor = ThemeManager.getPrimaryColor(this);
+        
+
+        getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        getWindow().setStatusBarColor(primaryColor);
+        
+
+        android.view.View rootView = findViewById(android.R.id.content);
+        if (rootView != null) {
+            android.view.View mainLayout = ((android.view.ViewGroup) rootView).getChildAt(0);
+            if (mainLayout != null) {
+
+                int lightPrimaryColor = lightenColor(primaryColor, 0.8f);
+                mainLayout.setBackgroundColor(lightPrimaryColor);
+            }
+        }
+    }
+    
+
+    private int lightenColor(int color, float factor) {
+        int red = (int) ((android.graphics.Color.red(color) * (1 - factor) + 255 * factor));
+        int green = (int) ((android.graphics.Color.green(color) * (1 - factor) + 255 * factor));
+        int blue = (int) ((android.graphics.Color.blue(color) * (1 - factor) + 255 * factor));
+        return android.graphics.Color.rgb(red, green, blue);
     }
 }

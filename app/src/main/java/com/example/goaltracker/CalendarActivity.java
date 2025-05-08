@@ -4,6 +4,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.graphics.Color;
 import android.widget.ArrayAdapter;
 import android.widget.CalendarView;
 import android.widget.ImageButton;
@@ -43,6 +45,10 @@ public class CalendarActivity extends AppCompatActivity {
             selectedDateTextView = findViewById(R.id.selectedDateTextView);
             completedHabitsListView = findViewById(R.id.completedHabitsListView);
             ImageButton backButton = findViewById(R.id.backButton);
+            
+            ThemeManager.applyNavigationButtonStyle(backButton);
+            
+            applyThemeColors();
 
             habitsAdapter = new ArrayAdapter<>(this, 
                 R.layout.calendar_list_item, android.R.id.text1, completedHabits);
@@ -122,5 +128,79 @@ public class CalendarActivity extends AppCompatActivity {
         return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
                cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
                cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH);
+    }
+
+
+    private void applyThemeColors() {
+
+        int primaryColor = ThemeManager.getPrimaryColor(this);
+        
+
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null) {
+            View mainLayout = ((ViewGroup) rootView).getChildAt(0);
+            if (mainLayout != null) {
+
+                int lightPrimaryColor = lightenColor(primaryColor, 0.8f);
+                mainLayout.setBackgroundColor(lightPrimaryColor);
+            }
+        }
+        
+
+        getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        getWindow().setStatusBarColor(primaryColor);
+        
+
+        androidx.cardview.widget.CardView calendarCardView = findViewById(R.id.calendarCardView);
+        androidx.cardview.widget.CardView listCardView = findViewById(R.id.listCardView);
+        
+        if (calendarCardView != null) {
+            calendarCardView.setCardBackgroundColor(primaryColor);
+        }
+        
+        if (listCardView != null) {
+            listCardView.setCardBackgroundColor(primaryColor);
+        }
+        
+
+        if (calendarView != null) {
+
+            try {
+
+                int accentColor = darkenColor(primaryColor, 0.3f);
+                
+
+                calendarView.setSelectedDateVerticalBar(new android.graphics.drawable.ColorDrawable(accentColor));
+                
+
+                try {
+                    Class<?> calendarViewClass = Class.forName("android.widget.CalendarView");
+                    java.lang.reflect.Field selectedWeekBackgroundPaintField = calendarViewClass.getDeclaredField("mSelectedDateVerticalBar");
+                    selectedWeekBackgroundPaintField.setAccessible(true);
+                    selectedWeekBackgroundPaintField.set(calendarView, new android.graphics.drawable.ColorDrawable(accentColor));
+                } catch (Exception e) {
+                    Log.d(TAG, "Could not set calendar highlight color using reflection: " + e.getMessage());
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error customizing calendar: " + e.getMessage());
+            }
+        }
+    }
+    
+
+    private int lightenColor(int color, float factor) {
+        int red = (int) ((Color.red(color) * (1 - factor) + 255 * factor));
+        int green = (int) ((Color.green(color) * (1 - factor) + 255 * factor));
+        int blue = (int) ((Color.blue(color) * (1 - factor) + 255 * factor));
+        return Color.rgb(red, green, blue);
+    }
+    
+
+    private int darkenColor(int color, float factor) {
+        int red = (int) (Color.red(color) * (1 - factor));
+        int green = (int) (Color.green(color) * (1 - factor));
+        int blue = (int) (Color.blue(color) * (1 - factor));
+        return Color.rgb(red, green, blue);
     }
 }

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/app_background">
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -23,6 +23,7 @@
             android:tint="@color/text_primary" />
 
         <TextView
+            android:id="@+id/statsTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -39,6 +40,7 @@
         android:padding="16dp">
 
         <LinearLayout
+            android:id="@+id/statsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -66,7 +68,34 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Longest Streak: 0 days"
-                android:textSize="18sp" />
+                android:textSize="18sp"
+                android:layout_marginBottom="16dp" />
+                
+            <TextView
+                android:id="@+id/totalPointsTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Total Points Earned: 0"
+                android:textSize="18sp"
+                android:layout_marginBottom="16dp" />
+                
+            <TextView
+                android:id="@+id/completionRateTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Completion Rate: 0.0% weekly, 0.0% monthly"
+                android:textSize="18sp"
+                android:layout_marginBottom="16dp" />
+                
+            <TextView
+                android:id="@+id/mostConsistentHabitTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Most Consistent Habit: None"
+                android:textSize="18sp"
+                android:layout_marginBottom="16dp" />
+                
+
 
         </LinearLayout>
     </ScrollView>

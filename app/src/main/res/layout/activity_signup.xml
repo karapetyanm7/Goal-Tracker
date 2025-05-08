@@ -4,7 +4,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:gravity="center_vertical"
     android:padding="24dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create Account"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="24dp"/>
 
     <EditText
         android:id="@+id/emailEditText"
@@ -42,5 +52,14 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="Sign Up"/>
+
+    <TextView
+        android:id="@+id/loginLinkTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:text="Already have an account? Login"
+        android:textColor="#0066CC"/>
 
 </LinearLayout>
