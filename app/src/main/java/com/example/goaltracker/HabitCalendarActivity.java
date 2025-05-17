@@ -91,23 +91,72 @@ public class HabitCalendarActivity extends AppCompatActivity {
     
 
     private void applyThemeColors() {
-
+        // Get the primary color from ThemeManager
         int primaryColor = ThemeManager.getPrimaryColor(this);
+        boolean isDarkMode = ThemeManager.isDarkMode(this);
         
-
+        // Set the status bar color
         getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        getWindow().setStatusBarColor(primaryColor);
+        if (isDarkMode) {
+            getWindow().setStatusBarColor(android.graphics.Color.BLACK);
+            getWindow().setNavigationBarColor(android.graphics.Color.BLACK);
+        } else {
+            getWindow().setStatusBarColor(primaryColor);
+        }
         
-
+        // Apply background color
         android.view.View rootView = findViewById(android.R.id.content);
         if (rootView != null) {
             android.view.View mainLayout = ((android.view.ViewGroup) rootView).getChildAt(0);
             if (mainLayout != null) {
-
-                int lightPrimaryColor = lightenColor(primaryColor, 0.8f);
-                mainLayout.setBackgroundColor(lightPrimaryColor);
+                if (isDarkMode) {
+                    // Use true dark background for dark mode
+                    mainLayout.setBackgroundColor(android.graphics.Color.parseColor("#121212")); // Material dark background
+                } else {
+                    int lightPrimaryColor = lightenColor(primaryColor, 0.8f);
+                    mainLayout.setBackgroundColor(lightPrimaryColor);
+                }
             }
+        }
+        
+        // Apply theme color to calendar
+        if (calendarView != null) {
+            // Set calendar background in dark mode
+            if (isDarkMode) {
+                calendarView.setBackgroundColor(android.graphics.Color.parseColor("#1E1E1E")); // Slightly lighter than background
+            }
+            
+            // Set the selected date color
+            calendarView.setSelectedDateVerticalBar(primaryColor);
+            
+            // Try to set calendar accent color through date text appearance
+            try {
+                // Customize date text color for selection
+                calendarView.setDateTextAppearance(android.R.style.TextAppearance_DeviceDefault);
+                calendarView.setFocusedMonthDateColor(primaryColor);
+                calendarView.setWeekSeparatorLineColor(primaryColor);
+                
+                if (isDarkMode) {
+                    // Try to set the calendar text colors for dark mode
+                    calendarView.setUnfocusedMonthDateColor(android.graphics.Color.LTGRAY);
+                }
+            } catch (Exception e) {
+                // Some CalendarView customizations may not work on all devices
+                e.printStackTrace();
+            }
+        }
+        
+        // Apply theme colors to list view and text
+        if (isDarkMode) {
+            if (completedHabitsListView != null) {
+                completedHabitsListView.setBackgroundColor(android.graphics.Color.parseColor("#1E1E1E"));
+            }
+        }
+        
+        // Apply theme color to text views with higher contrast in dark mode
+        if (selectedDateTextView != null) {
+            selectedDateTextView.setTextColor(isDarkMode ? android.graphics.Color.WHITE : android.graphics.Color.DKGRAY);
         }
     }
     
@@ -116,6 +165,16 @@ public class HabitCalendarActivity extends AppCompatActivity {
         int red = (int) ((android.graphics.Color.red(color) * (1 - factor) + 255 * factor));
         int green = (int) ((android.graphics.Color.green(color) * (1 - factor) + 255 * factor));
         int blue = (int) ((android.graphics.Color.blue(color) * (1 - factor) + 255 * factor));
+        return android.graphics.Color.rgb(red, green, blue);
+    }
+    
+    /**
+     * Helper method to create a darker version of a color
+     */
+    private int darkenColor(int color, float factor) {
+        int red = (int) (android.graphics.Color.red(color) * factor);
+        int green = (int) (android.graphics.Color.green(color) * factor);
+        int blue = (int) (android.graphics.Color.blue(color) * factor);
         return android.graphics.Color.rgb(red, green, blue);
     }
 }

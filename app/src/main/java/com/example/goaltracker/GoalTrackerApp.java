@@ -3,16 +3,28 @@ package com.example.goaltracker;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.multidex.MultiDex;
 
 public class GoalTrackerApp extends Application {
     
     @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
+    }
+
+    @Override
     public void onCreate() {
         super.onCreate();
         
-        initializeTheme();
+        try {
+            initializeTheme();
+        } catch (Exception e) {
+            Log.e("GoalTrackerApp", "Error initializing theme", e);
+        }
     }
     
     private void initializeTheme() {

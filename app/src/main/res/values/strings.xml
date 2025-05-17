@@ -2,4 +2,24 @@
 <resources>
     <string name="app_name">Goal Tracker</string>
     <string name="default_username">User</string>
+    
+    <!-- Habit frequency strings -->
+    <string name="frequency_title">Habit Frequency</string>
+    <string name="frequency_daily">Daily</string>
+    <string name="frequency_weekly">Weekly</string>
+    <string name="frequency_monthly">Monthly</string>
+    <string name="frequency_custom">Custom</string>
+    <string name="set_frequency">Set Frequency</string>
+    <string name="cancel">Cancel</string>
+    <string name="select_days">Select Days</string>
+    <string name="times_per_period">Times per period</string>
+    <string name="schedule_habit">Schedule Habit</string>
+    <string name="habit_scheduled_for_today">Scheduled for today</string>
+    <string name="habit_not_scheduled_for_today">Not scheduled for today</string>
+    
+    <!-- Period options for custom frequency -->
+    <string-array name="period_options">
+        <item>Week</item>
+        <item>Month</item>
+    </string-array>
 </resources>

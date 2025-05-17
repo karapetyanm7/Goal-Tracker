@@ -25,6 +25,9 @@ import android.view.inputmethod.InputMethodManager;
 import android.text.TextWatcher;
 import android.text.Editable;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
@@ -47,6 +50,8 @@ public class HabitDetailActivity extends AppCompatActivity {
     private ImageButton calendarButton;
     private ImageButton statsButton;
     private ImageButton reminderButton;
+    private ImageButton frequencyButton;
+    private TextView habitFrequencyTextView;
     private SharedPreferences sharedPreferences;
     private String habitName;
     private int habitPoints;
@@ -141,31 +146,33 @@ public class HabitDetailActivity extends AppCompatActivity {
         calendarButton = findViewById(R.id.calendarButton);
         statsButton = findViewById(R.id.statsButton);
         reminderButton = findViewById(R.id.reminderButton);
+        frequencyButton = findViewById(R.id.frequencyButton);
+        habitFrequencyTextView = findViewById(R.id.habitFrequencyTextView);
 
         if (habitNameTextView == null || habitPointsTextView == null || habitStreakTextView == null ||
             habitMaxStreakTextView == null || habitTreeImageView == null || motivationalTextView == null ||
             currentStreakIconImageView == null || maxStreakIconImageView == null || markCompleteButton == null ||
             editButton == null || deleteButton == null || backButton == null || calendarButton == null ||
-            statsButton == null || reminderButton == null) {
+            statsButton == null || reminderButton == null || frequencyButton == null ||
+            habitFrequencyTextView == null) {
             Toast.makeText(this, "Error initializing views", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
 
-        if (habitNameTextView != null) {
-            habitNameTextView.setEnabled(false);
-            habitNameTextView.setCursorVisible(false);
-            habitNameTextView.setFocusable(false);
-            habitNameTextView.setBackgroundResource(0);
+        // Simplified null check since we already checked all views above
+        habitNameTextView.setEnabled(false);
+        habitNameTextView.setCursorVisible(false);
+        habitNameTextView.setFocusable(false);
+        habitNameTextView.setBackgroundResource(0);
 
-            habitNameTextView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    showEditHabitNameDialog();
-                }
-            });
-        }
+        habitNameTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showEditHabitNameDialog();
+            }
+        });
 
         applyNavigationButtonStyling();
 
@@ -245,6 +252,9 @@ public class HabitDetailActivity extends AppCompatActivity {
                     Toast.makeText(HabitDetailActivity.this, message, Toast.LENGTH_SHORT).show();
 
                     isMarked = true;
+
+                    HabitFrequencyManager.recordCompletion(HabitDetailActivity.this, habitName);
+                    
                     updateUI();
                 } else if (isMarked) {
                     int previousPoints = sharedPreferences.getInt(habitName + "_previous_points", habitPoints);
@@ -311,6 +321,10 @@ public class HabitDetailActivity extends AppCompatActivity {
             Intent intent = new Intent(this, ReminderActivity.class);
             startActivity(intent);
         });
+        
+        frequencyButton.setOnClickListener(v -> {
+            showFrequencyDialog();
+        });
 
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(this, NotificationReceiver.class);
@@ -328,6 +342,7 @@ public class HabitDetailActivity extends AppCompatActivity {
         ThemeManager.applyNavigationButtonStyle(calendarButton);
         ThemeManager.applyNavigationButtonStyle(statsButton);
         ThemeManager.applyNavigationButtonStyle(reminderButton);
+        ThemeManager.applyNavigationButtonStyle(frequencyButton);
 
         int primaryColor = ThemeManager.getPrimaryColor(this);
         markCompleteButton.setBackgroundColor(primaryColor);
@@ -408,13 +423,18 @@ public class HabitDetailActivity extends AppCompatActivity {
         calendar.set(Calendar.MILLISECOND, 0);
         long startOfDay = calendar.getTimeInMillis();
         
-        return lastMarkedTime < startOfDay;
+        // First check if already marked today
+        if (lastMarkedTime >= startOfDay) {
+            return false;
+        }
+        
+        // Then check if scheduled for today based on frequency
+        return HabitFrequencyManager.canMarkCompleteToday(this, habitName);
     }
 
     private void updateUI() {
         habitNameTextView.setText(habitName);
         
-
         if (!habitNameTextView.isEnabled()) {
             int primaryColor = ThemeManager.getPrimaryColor(this);
             habitNameTextView.setTextColor(primaryColor);
@@ -426,8 +446,27 @@ public class HabitDetailActivity extends AppCompatActivity {
         habitStreakTextView.setText("Current Streak: " + currentStreak);
         habitMaxStreakTextView.setText("Max Streak: " + maxStreak);
 
-        markCompleteButton.setText(isMarked ? "Unmark Complete" : "Mark Complete");
-        markCompleteButton.setEnabled(true);
+        // Update frequency text
+        String frequencyDesc = HabitFrequencyManager.getFrequencyDescription(this, habitName);
+        habitFrequencyTextView.setText(frequencyDesc);
+        
+        // Determine if habit can be marked complete today
+        boolean canMark = canMarkComplete();
+        boolean scheduledForToday = HabitFrequencyManager.canMarkCompleteToday(this, habitName);
+        
+        // Update button state
+        if (isMarked) {
+            markCompleteButton.setText("Unmark Complete");
+            markCompleteButton.setEnabled(true);
+        } else {
+            markCompleteButton.setText("Mark Complete");
+            markCompleteButton.setEnabled(scheduledForToday);
+            
+            // Show toast if user can't mark due to scheduling
+            if (!scheduledForToday && !isMarked) {
+                markCompleteButton.setText("Not Scheduled Today");
+            }
+        }
 
         currentStreakIconImageView.setVisibility(currentStreak > 0 ? View.VISIBLE : View.GONE);
         maxStreakIconImageView.setVisibility(maxStreak > 0 ? View.VISIBLE : View.GONE);
@@ -484,6 +523,22 @@ public class HabitDetailActivity extends AppCompatActivity {
         resultIntent.putExtra("action", "update");
         setResult(RESULT_OK, resultIntent);
         super.onBackPressed();
+    }
+    
+    /**
+     * Show dialog to set habit frequency
+     */
+    private void showFrequencyDialog() {
+        HabitFrequencyManager.showFrequencyDialog(this, habitName, new HabitFrequencyManager.FrequencyDialogCallback() {
+            @Override
+            public void onFrequencySet(String frequency, Set<Integer> selectedDays, int timesPerPeriod, int periodType) {
+                // Update UI after frequency is set
+                updateUI();
+                
+                // Show confirmation toast
+                Toast.makeText(HabitDetailActivity.this, "Habit schedule updated", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void cancelAllReminders() {

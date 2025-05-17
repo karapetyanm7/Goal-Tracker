@@ -4,52 +4,67 @@ plugins {
 }
 
 android {
-    namespace = "com.example.goaltracker"
-    compileSdk = 34
+    namespace "com.example.goaltracker"
+    compileSdk 34
+    
+    dexOptions {
+        javaMaxHeapSize "4g" // Use more memory for dexing
+        preDexLibraries true
+    }
 
     defaultConfig {
-        applicationId = "com.example.goaltracker"
-        minSdk = 29
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        applicationId "com.example.goaltracker"
+        minSdk 29
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
         multiDexEnabled true
+        // Use a different dex implementation
+        multiDexKeepFile file('multidex-config.txt')
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            minifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
     buildFeatures {
         viewBinding true
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
 dependencies {
-    implementation platform('com.google.firebase:firebase-bom:32.7.2')
+    // Firebase
+    implementation platform('com.google.firebase:firebase-bom:32.0.0') // Using an older, more stable version
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-firestore'
-    implementation 'com.google.android.gms:play-services-auth:20.7.0'
-    implementation 'com.google.android.material:material:1.11.0'
     implementation 'com.google.firebase:firebase-analytics'
-    implementation(libs.appcompat)
-    implementation(libs.material)
-    implementation(libs.activity)
-    implementation(libs.constraintlayout)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.ext.junit)
-    androidTestImplementation(libs.espresso.core)
+    // Re-adding Firebase Dynamic Links as needed for app functionality
+    implementation 'com.google.firebase:firebase-dynamic-links'
+    
+    // Google Play Services
+    implementation 'com.google.android.gms:play-services-auth:20.0.0'
+    
+    // UI components
+    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.activity:activity:1.7.2'
+    
+    // MultiDex support for Java 8
+    implementation 'androidx.multidex:multidex:2.0.1'
+    
+    // Testing
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }
 
 apply plugin: 'com.google.gms.google-services'

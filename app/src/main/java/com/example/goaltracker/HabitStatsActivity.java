@@ -38,7 +38,7 @@ public class HabitStatsActivity extends AppCompatActivity {
         ThemeManager.applyTheme(this);
         setContentView(R.layout.activity_habit_stats);
 
-        mPrefs = getSharedPreferences("GoalTracker", MODE_PRIVATE);
+        mPrefs = getSharedPreferences("GoalTrackerPrefs", MODE_PRIVATE);
         
         Intent intent = getIntent();
         habitName = intent.getStringExtra("habitName");
@@ -60,16 +60,17 @@ public class HabitStatsActivity extends AppCompatActivity {
     
     private void setupBackButton() {
         ImageButton backButton = findViewById(R.id.backButton);
+        backButton.setImageResource(R.drawable.back_icon);
         backButton.setOnClickListener(v -> finish());
     }
     
     private void updateStats() {
         // Get the total number of completions
-        int completions = mPrefs.getInt(habitName + "_completed", 0);
+        int completions = mPrefs.getInt(habitName + "_completed_count", 0);
         completedEverTextView.setText(String.valueOf(completions));
         
         // Get the last marked date
-        long lastMarkedDate = mPrefs.getLong(habitName + "_lastMarkedDate", 0);
+        long lastMarkedDate = mPrefs.getLong(habitName + "_last_marked", 0);
         
         // Calculate completions for current week and month
         int weeklyCompletions = getCompletionsForCurrentWeek(lastMarkedDate);
@@ -79,10 +80,10 @@ public class HabitStatsActivity extends AppCompatActivity {
         completedThisMonthTextView.setText(String.valueOf(monthlyCompletions));
         
         // Add advanced statistics
-        int currentStreak = mPrefs.getInt(habitName + "_currentStreak", 0);
-        int maxStreak = mPrefs.getInt(habitName + "_maxStreak", 0);
+        int currentStreak = mPrefs.getInt(habitName + "_streak", 0);
+        int maxStreak = mPrefs.getInt(habitName + "_max_streak", 0);
         int points = mPrefs.getInt(habitName + "_points", 0);
-        long creationDate = mPrefs.getLong(habitName + "_creationDate", System.currentTimeMillis());
+        long creationDate = mPrefs.getLong(habitName + "_created", System.currentTimeMillis());
         
         boolean isDarkMode = ThemeManager.isDarkMode(this);
         int textColor = isDarkMode ? 
@@ -211,19 +212,6 @@ public class HabitStatsActivity extends AppCompatActivity {
         feedbackView.setTextColor(Color.WHITE);
         feedbackView.setPadding(0, 16, 0, 16);
         statsLayout.addView(feedbackView);
-        
-        // Add projections
-        addSeparator(statsLayout);
-        addSectionTitle(statsLayout, "Projections", Color.WHITE);
-        
-        // Weekly, monthly, yearly projections
-        float weeklyAvg = avgPointsPerDay * 7;
-        float monthlyAvg = avgPointsPerDay * 30;
-        float yearlyAvg = avgPointsPerDay * 365;
-        
-        addStatRow(statsLayout, "Weekly Average:", String.format("%.0f points", weeklyAvg), Color.WHITE);
-        addStatRow(statsLayout, "Monthly Average:", String.format("%.0f points", monthlyAvg), Color.WHITE);
-        addStatRow(statsLayout, "Yearly Average:", String.format("%.0f points", yearlyAvg), Color.WHITE);
         
         // Add the stats layout to the card
         cardView.addView(statsLayout);
