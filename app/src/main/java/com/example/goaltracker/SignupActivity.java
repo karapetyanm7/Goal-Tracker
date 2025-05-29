@@ -46,22 +46,25 @@ public class SignupActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Apply theme before setting content view
         ThemeManager.applyTheme(this);
-        
-        // Check for incoming verification links
         checkForVerificationLink();
+        
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            Intent intent = new Intent(SignupActivity.this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+            return;
+        }
         
         setContentView(R.layout.activity_signup);
 
         try {
             Log.d(TAG, "Getting Firebase Auth instance");
             
-            // Let Firebase SDK handle initialization - don't manually initialize
             mAuth = FirebaseAuth.getInstance();
             Log.d(TAG, "FirebaseAuth instance created");
-
-            // Initialize views
             emailEditText = findViewById(R.id.emailEditText);
             passwordEditText = findViewById(R.id.passwordEditText);
             nameEditText = findViewById(R.id.nameEditText);
@@ -76,7 +79,6 @@ public class SignupActivity extends AppCompatActivity {
                 return;
             }
 
-            // Setup signup button
             signupButton.setOnClickListener(v -> {
                 if (!isNetworkAvailable()) {
                     Log.e(TAG, "No network connection available");
@@ -204,11 +206,8 @@ public class SignupActivity extends AppCompatActivity {
         }
         
         try {
-            // Skip email verification in debug mode or if there are issues
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "Email verification skipped in debug mode");
-                return;
-            }
+            // Always send verification email regardless of debug mode
+            Log.d(TAG, "Attempting to send verification email");
             
             // Simple verification without any custom settings
             user.sendEmailVerification()

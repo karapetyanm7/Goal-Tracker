@@ -5,11 +5,10 @@ import java.util.Set;
 
 public class Habit {
 
-    // Frequency constants
+
     public static final String FREQUENCY_DAILY = "daily";
-    public static final String FREQUENCY_WEEKLY = "weekly";
-    public static final String FREQUENCY_MONTHLY = "monthly";
     public static final String FREQUENCY_CUSTOM = "custom";
+
 
     private String name;
     private int points;
@@ -17,10 +16,10 @@ public class Habit {
     private int maxStreak;
     private int currentStreak;
     
-    // Frequency tracking fields
-    private String frequency = FREQUENCY_DAILY; // Default is daily
-    private Set<Integer> selectedDays = new HashSet<>(); // For weekly and custom frequencies (1=Monday, 7=Sunday)
-    private int timesPerPeriod = 1; // For custom frequency - how many times per week/month
+
+    private String frequency = FREQUENCY_DAILY;
+    private Set<Integer> selectedDays = new HashSet<>();
+    private int timesPerPeriod = 1;
     
     public Habit(String name) {
         this.name = name;
@@ -103,29 +102,19 @@ public class Habit {
     public void setTimesPerPeriod(int timesPerPeriod) {
         this.timesPerPeriod = timesPerPeriod;
     }
-    
-    /**
-     * Check if habit is scheduled for today
-     * @return true if habit is scheduled for current day
-     */
+
     public boolean isScheduledForToday() {
         java.util.Calendar calendar = java.util.Calendar.getInstance();
         int dayOfWeek = calendar.get(java.util.Calendar.DAY_OF_WEEK);
-        int dayOfMonth = calendar.get(java.util.Calendar.DAY_OF_MONTH);
         
-        // Convert Calendar.DAY_OF_WEEK to our 1-7 format (where 1=Monday, 7=Sunday)
+
         int adjustedDay = dayOfWeek == java.util.Calendar.SUNDAY ? 7 : dayOfWeek - 1;
         
         switch (frequency) {
             case FREQUENCY_DAILY:
                 return true;
-            case FREQUENCY_WEEKLY:
-                return selectedDays.contains(adjustedDay);
-            case FREQUENCY_MONTHLY:
-                // If set for specific days of the month
-                return selectedDays.contains(dayOfMonth);
             case FREQUENCY_CUSTOM:
-                // For custom frequency, check if day is selected
+
                 return selectedDays.contains(adjustedDay);
             default:
                 return true;

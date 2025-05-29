@@ -31,14 +31,41 @@
             android:padding="16dp"
             android:gravity="center_horizontal">
 
-            <ImageView
-                android:id="@+id/profile_image"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                android:src="@drawable/user_icon"
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:layout_marginBottom="24dp"
-                android:contentDescription="Profile Image" />
+                android:layout_marginBottom="24dp">
+                
+                <ImageView
+                    android:id="@+id/profile_image"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:src="@drawable/user_icon"
+                    android:scaleType="centerCrop"
+                    android:background="@android:color/darker_gray"
+                    android:padding="1dp"
+                    android:contentDescription="Profile Image" />
+                    
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/edit_icon"
+                    android:layout_gravity="bottom|end"
+                    android:background="@android:color/white"
+                    android:padding="4dp"
+                    android:contentDescription="Change Profile Image" />
+                    
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tap to change"
+                    android:textSize="12sp"
+                    android:textColor="@android:color/white"
+                    android:background="#80000000"
+                    android:padding="4dp"
+                    android:layout_gravity="bottom|center_horizontal" />
+            </FrameLayout>
 
             <LinearLayout
                 android:id="@+id/name_display_layout"
@@ -98,6 +125,15 @@
                 android:layout_height="wrap_content"
                 android:text="user@example.com"
                 android:textSize="18sp"
+                android:layout_marginBottom="16dp" />
+            
+            <TextView
+                android:id="@+id/profile_creation_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Account created: Not available"
+                android:textSize="16sp"
+                android:textStyle="italic"
                 android:layout_marginBottom="32dp" />
 
 
@@ -106,7 +142,129 @@
                 android:layout_height="1dp"
                 android:background="@color/divider"
                 android:layout_marginBottom="16dp" />
-
+                
+            <!-- Badges Section -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Badges"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_marginBottom="16dp" />
+                
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="32dp">
+                
+                <FrameLayout
+                    android:id="@+id/badge_50_days"
+                    android:layout_width="80dp"
+                    android:layout_height="100dp"
+                    android:layout_margin="8dp">
+                    
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/ic_lock_gray"
+                        android:scaleType="center"
+                        android:alpha="0.7"
+                        android:contentDescription="50 Day Streak Badge Locked" />
+                        
+                    <ImageView
+                        android:id="@+id/badge_50_days_icon"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/day50badge"
+                        android:scaleType="fitCenter"
+                        android:visibility="gone"
+                        android:contentDescription="50 Day Streak Badge" />
+                        
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="50 Days"
+                        android:textSize="12sp"
+                        android:gravity="center"
+                        android:layout_gravity="bottom"
+                        android:background="#80000000"
+                        android:textColor="@android:color/white"
+                        android:padding="2dp"/>
+                </FrameLayout>
+                
+                <FrameLayout
+                    android:id="@+id/badge_100_days"
+                    android:layout_width="80dp"
+                    android:layout_height="100dp"
+                    android:layout_margin="8dp">
+                    
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/ic_lock_gray"
+                        android:scaleType="center"
+                        android:alpha="0.7"
+                        android:contentDescription="100 Day Streak Badge Locked" />
+                        
+                    <ImageView
+                        android:id="@+id/badge_100_days_icon"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/day100badge"
+                        android:scaleType="fitCenter"
+                        android:visibility="gone"
+                        android:contentDescription="100 Day Streak Badge" />
+                        
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="100 Days"
+                        android:textSize="12sp"
+                        android:gravity="center"
+                        android:layout_gravity="bottom"
+                        android:background="#80000000"
+                        android:textColor="@android:color/white"
+                        android:padding="2dp"/>
+                </FrameLayout>
+                
+                <FrameLayout
+                    android:id="@+id/badge_365_days"
+                    android:layout_width="80dp"
+                    android:layout_height="100dp"
+                    android:layout_margin="8dp">
+                    
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/ic_lock_gray"
+                        android:scaleType="center"
+                        android:alpha="0.7"
+                        android:contentDescription="365 Day Streak Badge Locked" />
+                        
+                    <ImageView
+                        android:id="@+id/badge_365_days_icon"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/day365badge"
+                        android:scaleType="fitCenter"
+                        android:visibility="gone"
+                        android:contentDescription="365 Day Streak Badge" />
+                        
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="365 Days"
+                        android:textSize="12sp"
+                        android:gravity="center"
+                        android:layout_gravity="bottom"
+                        android:background="#80000000"
+                        android:textColor="@android:color/white"
+                        android:padding="2dp"/>
+                </FrameLayout>
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 

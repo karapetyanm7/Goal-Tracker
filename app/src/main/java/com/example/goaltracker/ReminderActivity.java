@@ -55,6 +55,13 @@ public class ReminderActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        ThemeManager.applyTheme(this);
+        
+        if (!GoalTrackerApp.checkAuthenticationStatus(this)) {
+            return;
+        }
+        
         setContentView(R.layout.activity_reminder);
         
         Log.d(TAG, "ReminderActivity onCreate started");
@@ -83,10 +90,8 @@ public class ReminderActivity extends AppCompatActivity {
         ThemeManager.applyNavigationButtonStyle(backButton);
         backButton.setOnClickListener(v -> finish());
         
-        // Get header layout
         RelativeLayout headerLayout = findViewById(R.id.reminderHeaderLayout);
         if (headerLayout != null) {
-            // Ensure the header layout uses the primary color
             int primaryColor = ThemeManager.getPrimaryColor(this);
             headerLayout.setBackgroundColor(primaryColor);
         }
@@ -111,6 +116,14 @@ public class ReminderActivity extends AppCompatActivity {
         }
         
         Log.d(TAG, "ReminderActivity onCreate completed");
+    }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        
+        // Check authentication status whenever the activity becomes visible
+        GoalTrackerApp.checkAuthenticationStatus(this);
     }
     
     private void loadReminders() {
@@ -314,26 +327,30 @@ public class ReminderActivity extends AppCompatActivity {
     private void showHabitSelectionDialog(final int[] selectedHabitId, final String[] selectedHabitName, final Button selectHabitButton) {
 
         SharedPreferences habitsPrefs = getSharedPreferences("GoalTrackerPrefs", Context.MODE_PRIVATE);
-        Set<String> habitSet = habitsPrefs.getStringSet("habit_items", new HashSet<>());
+        Set<String> habitSet = habitsPrefs.getStringSet("habits", new HashSet<>());
         
         if (habitSet.isEmpty()) {
             Toast.makeText(this, "No habits found. Create habits first.", Toast.LENGTH_SHORT).show();
             return;
         }
         
+        Log.d(TAG, "Found " + habitSet.size() + " habits");
 
         ArrayList<String> habitNames = new ArrayList<>();
         final ArrayList<Integer> habitIds = new ArrayList<>();
+        int id = 0;
         
-        for (String habitData : habitSet) {
+        for (String habitName : habitSet) {
             try {
-                String[] parts = habitData.split("\\|");
-                if (parts.length >= 2) {
-                    habitIds.add(Integer.parseInt(parts[0]));
-                    habitNames.add(parts[1]);
+                if (habitName != null && !habitName.isEmpty()) {
+                    // In MainActivity, habits are stored as simple strings, not in id|name format
+                    habitIds.add(id);
+                    habitNames.add(habitName);
+                    id++;
+                    Log.d(TAG, "Added habit: " + habitName + " with ID: " + (id-1));
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Error parsing habit data: " + e.getMessage());
+                Log.e(TAG, "Error processing habit: " + e.getMessage());
             }
         }
         
@@ -782,26 +799,30 @@ public class ReminderActivity extends AppCompatActivity {
     private void showHabitSelectionForTestNotification() {
 
         SharedPreferences habitsPrefs = getSharedPreferences("GoalTrackerPrefs", Context.MODE_PRIVATE);
-        Set<String> habitSet = habitsPrefs.getStringSet("habit_items", new HashSet<>());
+        Set<String> habitSet = habitsPrefs.getStringSet("habits", new HashSet<>());
         
         if (habitSet.isEmpty()) {
             Toast.makeText(this, "No habits found. Create habits first.", Toast.LENGTH_SHORT).show();
             return;
         }
         
+        Log.d(TAG, "Found " + habitSet.size() + " habits for test notification");
 
         ArrayList<String> habitNames = new ArrayList<>();
         final ArrayList<Integer> habitIds = new ArrayList<>();
+        int id = 0;
         
-        for (String habitData : habitSet) {
+        for (String habitName : habitSet) {
             try {
-                String[] parts = habitData.split("\\|");
-                if (parts.length >= 2) {
-                    habitIds.add(Integer.parseInt(parts[0]));
-                    habitNames.add(parts[1]);
+                if (habitName != null && !habitName.isEmpty()) {
+                    // In MainActivity, habits are stored as simple strings, not in id|name format
+                    habitIds.add(id);
+                    habitNames.add(habitName);
+                    id++;
+                    Log.d(TAG, "Added habit for test: " + habitName + " with ID: " + (id-1));
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Error parsing habit data: " + e.getMessage());
+                Log.e(TAG, "Error processing habit for test: " + e.getMessage());
             }
         }
         
@@ -947,18 +968,17 @@ public class ReminderActivity extends AppCompatActivity {
             
             // Apply theme colors to reminder items
             int primaryColor = ThemeManager.getPrimaryColor(getContext());
-            boolean isDarkMode = ThemeManager.isDarkMode(getContext());
             
-            // Set card background in dark mode
+            // Set card background (always light mode)
             View cardView = convertView.findViewById(R.id.reminder_item_card);
-            if (cardView != null && isDarkMode) {
-                cardView.setBackgroundColor(Color.parseColor("#2D2D2D")); // Dark gray for cards in dark mode
+            if (cardView != null) {
+                cardView.setBackgroundColor(Color.WHITE);
             }
             
-            // Apply text colors with better contrast in dark mode
-            typeText.setTextColor(primaryColor); // Keep primary color for type text in both modes
-            timeText.setTextColor(isDarkMode ? Color.WHITE : Color.DKGRAY); // Higher contrast text in dark mode
-            daysText.setTextColor(isDarkMode ? Color.WHITE : Color.DKGRAY); // Higher contrast text in dark mode
+            // Apply text colors
+            typeText.setTextColor(primaryColor); // Keep primary color for type text
+            timeText.setTextColor(Color.DKGRAY); // Use dark gray for time text
+            daysText.setTextColor(Color.DKGRAY); // Use dark gray for days text
             
             String typeLabel;
             if (reminder.isHabitSpecific()) {
@@ -971,12 +991,8 @@ public class ReminderActivity extends AppCompatActivity {
             timeText.setText(reminder.time);
             daysText.setText(reminder.days);
             
-            // Apply theme color to delete button with better visibility in dark mode
-            if (isDarkMode) {
-                deleteButton.setColorFilter(Color.WHITE);
-            } else {
-                deleteButton.setColorFilter(primaryColor);
-            }
+            // Apply theme color to delete button
+            deleteButton.setColorFilter(primaryColor);
             
             deleteButton.setOnClickListener(v -> {
                 AlertDialog.Builder builder = new AlertDialog.Builder(ReminderActivity.this);
@@ -985,16 +1001,13 @@ public class ReminderActivity extends AppCompatActivity {
                        .setPositiveButton("Delete", (dialog, which) -> deleteReminder(position))
                        .setNegativeButton("Cancel", null);
                 
-                // Create and customize the dialog
+                // Create dialog
                 AlertDialog dialog = builder.create();
-                if (isDarkMode) {
-                    dialog.setOnShowListener(d -> {
-                        // Set button colors for better visibility in dark mode
-                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(primaryColor);
-                        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(primaryColor);
-                    });
-                }
                 dialog.show();
+                
+                // Set button colors
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(primaryColor);
+                dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(primaryColor);
             });
             
             return convertView;
@@ -1039,10 +1052,11 @@ public class ReminderActivity extends AppCompatActivity {
     private void applyThemeColors() {
         // Get the primary color from ThemeManager
         int primaryColor = ThemeManager.getPrimaryColor(this);
-        boolean isDarkMode = ThemeManager.isDarkMode(this);
         
-        // Apply to buttons
-        addReminderButton.setBackgroundColor(primaryColor);
+        // Apply to buttons - with null check
+        if (addReminderButton != null) {
+            addReminderButton.setBackgroundColor(primaryColor);
+        }
         
         // Apply color to the header layout
         RelativeLayout headerLayout = findViewById(R.id.reminderHeaderLayout);
@@ -1055,35 +1069,21 @@ public class ReminderActivity extends AppCompatActivity {
         if (rootView != null) {
             View mainLayout = ((ViewGroup) rootView).getChildAt(0);
             if (mainLayout != null) {
-                if (isDarkMode) {
-                    // For dark mode, use a true dark background
-                    mainLayout.setBackgroundColor(Color.parseColor("#121212")); // Material dark background
-                } else {
-                    // For light mode, use a lighter shade of the primary color
-                    int lightPrimaryColor = lightenColor(primaryColor, 0.8f);
-                    mainLayout.setBackgroundColor(lightPrimaryColor);
-                }
+                // Apply lightened primary color for background
+                int lightPrimaryColor = lightenColor(primaryColor, 0.8f);
+                mainLayout.setBackgroundColor(lightPrimaryColor);
             }
         }
         
         // Apply color to NoRemindersText if it's visible
         if (noRemindersText != null) {
-            noRemindersText.setTextColor(isDarkMode ? Color.WHITE : Color.DKGRAY);
+            noRemindersText.setTextColor(Color.DKGRAY);
         }
         
         // Set the status bar color to match the primary theme color
         getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        if (isDarkMode) {
-            getWindow().setStatusBarColor(Color.BLACK);
-        } else {
-            getWindow().setStatusBarColor(primaryColor);
-        }
-        
-        // Set navigation bar color for dark mode
-        if (isDarkMode) {
-            getWindow().setNavigationBarColor(Color.BLACK);
-        }
+        getWindow().setStatusBarColor(primaryColor);
         
         // Force refresh of list items if adapter is already set
         if (reminderAdapter != null) {
@@ -1092,8 +1092,8 @@ public class ReminderActivity extends AppCompatActivity {
         
         // Update list background
         ListView reminderListView = findViewById(R.id.reminderListView);
-        if (reminderListView != null && isDarkMode) {
-            reminderListView.setBackgroundColor(Color.parseColor("#121212"));
+        if (reminderListView != null) {
+            reminderListView.setBackgroundColor(Color.WHITE);
         }
     }
     

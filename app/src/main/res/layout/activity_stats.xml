@@ -20,7 +20,7 @@
             android:padding="12dp"
             android:scaleType="fitCenter"
             android:contentDescription="Back"
-            android:tint="@color/text_primary" />
+            app:tint="@color/text_primary" />
 
         <TextView
             android:id="@+id/statsTitle"
@@ -100,3 +100,4 @@
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
+

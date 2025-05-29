@@ -17,9 +17,8 @@
     <string name="habit_scheduled_for_today">Scheduled for today</string>
     <string name="habit_not_scheduled_for_today">Not scheduled for today</string>
     
-    <!-- Period options for custom frequency -->
+    <!-- Period options for custom frequency - only week option available as requested -->
     <string-array name="period_options">
         <item>Week</item>
-        <item>Month</item>
     </string-array>
 </resources>

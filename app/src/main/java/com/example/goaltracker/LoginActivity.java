@@ -22,7 +22,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LoginActivity";
     private EditText emailEditText, passwordEditText;
-    private Button loginButton;
+    private Button loginButton, testUserButton;
     private ProgressBar progressBar;
     private FirebaseAuth mAuth;
     private SharedPreferences localPrefs;
@@ -31,10 +31,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Apply theme before setting content view
         ThemeManager.applyTheme(this);
-        
-        // Check for incoming verification links
         checkForVerificationLink();
         
         setContentView(R.layout.activity_login);
@@ -42,9 +39,7 @@ public class LoginActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         localPrefs = getSharedPreferences("LocalAuth", Context.MODE_PRIVATE);
 
-        // Check if user is already signed in (Firebase or local)
         if (isUserLoggedIn()) {
-            // User is already signed in, go to MainActivity
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
             finish();
             return;
@@ -53,22 +48,28 @@ public class LoginActivity extends AppCompatActivity {
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         loginButton = findViewById(R.id.loginButton);
+        testUserButton = findViewById(R.id.testUserButton);
         progressBar = findViewById(R.id.progressBar);
 
         loginButton.setOnClickListener(v -> handleLogin());
+        testUserButton.setOnClickListener(v -> loginAsTestUser());
     }
     
     private boolean isUserLoggedIn() {
-        // Check only Firebase authentication
+
         FirebaseUser currentUser = mAuth.getCurrentUser();
         return currentUser != null;
+    }
+    
+    private void loginAsTestUser() {
+        emailEditText.setText("individualproject2025@gmail.com");
+        passwordEditText.setText("12345678");
+        handleLogin();
     }
 
     private void handleLogin() {
         String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
-
-        // Validate inputs
         if (TextUtils.isEmpty(email)) {
             emailEditText.setError("Email is required");
             return;
@@ -82,15 +83,12 @@ public class LoginActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         loginButton.setEnabled(false);
 
-        // Sign in with Firebase
         mAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this, task -> {
                 if (task.isSuccessful()) {
-                    // Sign in success
                     handleSuccessfulLogin();
                 } else {
-                    // Authentication failed
-                    handleFailedLogin(task.getException() != null ? 
+                    handleFailedLogin(task.getException() != null ?
                         task.getException().getMessage() : 
                         "Authentication failed");
                 }
@@ -98,22 +96,18 @@ public class LoginActivity extends AppCompatActivity {
     }
     
     private void handleSuccessfulLogin() {
-        // Sign in success
         Log.d(TAG, "signInWithEmail:success");
         FirebaseUser user = mAuth.getCurrentUser();
         progressBar.setVisibility(View.GONE);
         loginButton.setEnabled(true);
         
-        // Check if email is verified
+
         if (user != null && user.isEmailVerified()) {
-            // User's email is verified, proceed to main activity
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
             finish();
         } else if (user != null) {
-            // User's email is not verified, show dialog and sign them out
             showEmailVerificationRequiredDialog(user.getEmail());
         } else {
-            // This should not happen, but just in case
             Toast.makeText(LoginActivity.this, "Login error: User is null", Toast.LENGTH_SHORT).show();
         }
     }
@@ -125,16 +119,15 @@ public class LoginActivity extends AppCompatActivity {
         builder.setCancelable(false);
         
         builder.setPositiveButton("OK", (dialog, which) -> {
-            mAuth.signOut(); // Sign out until email is verified
+            mAuth.signOut();
         });
         
         builder.setNeutralButton("Resend Email", (dialog, which) -> {
-            // Resend verification email
             FirebaseUser user = mAuth.getCurrentUser();
             if (user != null) {
                 sendVerificationEmail(user);
             }
-            mAuth.signOut(); // Sign out until email is verified
+            mAuth.signOut();
         });
         
         AlertDialog dialog = builder.create();
@@ -149,7 +142,7 @@ public class LoginActivity extends AppCompatActivity {
         }
         
         try {
-            // Skip email verification in debug mode to avoid potential issues
+
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "Email verification skipped in debug mode");
                 Toast.makeText(LoginActivity.this, 
@@ -157,8 +150,7 @@ public class LoginActivity extends AppCompatActivity {
                               Toast.LENGTH_SHORT).show();
                 return;
             }
-            
-            // Simple verification with no custom settings
+
             user.sendEmailVerification()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -181,21 +173,16 @@ public class LoginActivity extends AppCompatActivity {
     private void handleFailedLogin(String errorMessage) {
         progressBar.setVisibility(View.GONE);
         loginButton.setEnabled(true);
-        
-        // Log the failure
+
         Log.w(TAG, "signInWithEmail:failure: " + errorMessage);
-        
-        // Check if it's a Firebase configuration error
+
         if (errorMessage.contains("CONFIGURATION_NOT_FOUND")) {
-            // This is likely due to missing reCAPTCHA configuration in Firebase
             String email = emailEditText.getText().toString().trim();
             
-            // For demo purposes - check if there's a stored name for this user
             SharedPreferences prefs = getSharedPreferences("UserData", Context.MODE_PRIVATE);
             String userName = prefs.getString("user_name", "");
             
             if (!userName.isEmpty()) {
-                // Development mode login
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Development Mode");
                 builder.setMessage("Firebase configuration issue detected. Using development mode login to continue.");
@@ -207,7 +194,6 @@ public class LoginActivity extends AppCompatActivity {
                 builder.setCancelable(false);
                 builder.show();
             } else {
-                // No stored user, prompt to sign up
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Account Not Found");
                 builder.setMessage("No account found with these credentials. Would you like to sign up?");
@@ -218,7 +204,6 @@ public class LoginActivity extends AppCompatActivity {
                 builder.show();
             }
         } else {
-            // Regular authentication failure
             Toast.makeText(LoginActivity.this, "Login failed: " + errorMessage,
                     Toast.LENGTH_LONG).show();
         }
@@ -233,7 +218,6 @@ public class LoginActivity extends AppCompatActivity {
                 .getDynamicLink(getIntent())
                 .addOnSuccessListener(this, pendingDynamicLinkData -> {
                     if (pendingDynamicLinkData != null) {
-                        // Handle the verification link
                         handleVerificationLink(pendingDynamicLinkData.getLink());
                     }
                 })
@@ -247,11 +231,10 @@ public class LoginActivity extends AppCompatActivity {
             String link = deepLink.toString();
             Log.d(TAG, "Verification link received: " + link);
             
-            // Extract the email and verification code if needed
+
             String actionCode = deepLink.getQueryParameter("oobCode");
             
             if (actionCode != null) {
-                // Verify the email with Firebase
                 verifyEmailWithCode(actionCode);
             }
         }
@@ -261,22 +244,19 @@ public class LoginActivity extends AppCompatActivity {
         mAuth.applyActionCode(actionCode)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // Email successfully verified
-                        Toast.makeText(LoginActivity.this, "Email verified successfully!", 
+                        Toast.makeText(LoginActivity.this, "Email verified successfully!",
                                 Toast.LENGTH_LONG).show();
                                 
-                        // If user is signed in, refresh the token
+
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
                             user.reload().addOnCompleteListener(reloadTask -> {
                                 if (reloadTask.isSuccessful()) {
-                                    // Enable login button after verification
                                     loginButton.setEnabled(true);
                                 }
                             });
                         }
                     } else {
-                        // Handle verification error
                         Log.e(TAG, "Error verifying email", task.getException());
                         Toast.makeText(LoginActivity.this, 
                                 "Error verifying email: " + (task.getException() != null ? 

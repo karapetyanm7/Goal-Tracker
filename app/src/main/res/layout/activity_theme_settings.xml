@@ -85,7 +85,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:columnCount="3"
-                android:rowCount="3"
+                android:rowCount="4"
                 android:alignmentMode="alignMargins"
                 android:useDefaultMargins="true">
                 
@@ -149,6 +149,24 @@
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:background="@color/gray_primary"/>
+
+                <View
+                    android:id="@+id/dark_blue_color"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:background="@color/dark_blue_primary"/>
+
+                <View
+                    android:id="@+id/brown_color"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:background="@color/brown_primary"/>
+                
+                <View
+                    android:id="@+id/beige_color"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:background="@color/beige_primary"/>
             </GridLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>

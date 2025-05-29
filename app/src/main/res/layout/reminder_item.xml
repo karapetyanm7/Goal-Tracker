@@ -32,36 +32,38 @@
             android:id="@+id/reminderTimeText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
             android:layout_alignTop="@id/reminderTypeText"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="77dp"
             android:text="08:00"
+            android:textColor="?attr/colorOnSurface"
             android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorOnSurface" />
-
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/reminderDaysText"
-            android:layout_width="match_parent"
+            android:layout_width="221dp"
             android:layout_height="wrap_content"
             android:layout_below="@id/reminderTypeText"
             android:layout_marginTop="8dp"
+            android:layout_marginEnd="93dp"
             android:layout_toStartOf="@id/deleteReminderButton"
             android:text="Monday, Wednesday, Friday"
-            android:textSize="14sp"
-            android:textColor="?attr/colorOnSurface" />
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="14sp" />
 
         <ImageButton
             android:id="@+id/deleteReminderButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
             android:layout_marginStart="8dp"
+            android:layout_marginEnd="6dp"
             android:background="@android:color/transparent"
             android:contentDescription="Delete Reminder"
-            android:src="@drawable/ic_delete"
             android:padding="8dp"
+            android:src="@drawable/ic_delete"
             tools:ignore="UseAppTint" />
 
     </RelativeLayout>

@@ -6,11 +6,6 @@ plugins {
 android {
     namespace "com.example.goaltracker"
     compileSdk 34
-    
-    dexOptions {
-        javaMaxHeapSize "4g" // Use more memory for dexing
-        preDexLibraries true
-    }
 
     defaultConfig {
         applicationId "com.example.goaltracker"
@@ -19,34 +14,62 @@ android {
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
-        // Use a different dex implementation
-        multiDexKeepFile file('multidex-config.txt')
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
-
+    
+    dexOptions {
+        javaMaxHeapSize "4g"
+        preDexLibraries true
+        additionalParameters += ['--force-jumbo']
+        keepRuntimeAnnotatedClasses false
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    
     buildTypes {
+        debug {
+            minifyEnabled false
+            shrinkResources false
+        }
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     buildFeatures {
         viewBinding true
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 }
 
 dependencies {
+    // Force consistent Kotlin version to avoid conflicts
+    configurations.all {
+        resolutionStrategy {
+            force 'org.jetbrains.kotlin:kotlin-stdlib:1.6.21'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.6.21'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-common:1.6.21'
+            // Avoid duplicate classes
+            eachDependency { details ->
+                if (details.requested.group == 'org.jetbrains.kotlin') {
+                    details.useVersion '1.6.21'
+                }
+            }
+        }
+    }
+    
     // Firebase
-    implementation platform('com.google.firebase:firebase-bom:32.0.0') // Using an older, more stable version
+    implementation platform('com.google.firebase:firebase-bom:32.0.0') 
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-firestore'
     implementation 'com.google.firebase:firebase-analytics'
-    // Re-adding Firebase Dynamic Links as needed for app functionality
     implementation 'com.google.firebase:firebase-dynamic-links'
     
     // Google Play Services
@@ -68,3 +91,4 @@ dependencies {
 }
 
 apply plugin: 'com.google.gms.google-services'
+

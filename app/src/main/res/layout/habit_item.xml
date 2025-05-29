@@ -35,7 +35,7 @@
             android:layout_height="24dp"
             android:src="@drawable/streak_fire"
             android:layout_marginStart="8dp"
-            android:tint="@color/streak_active"
+            app:tint="@color/streak_active"
             android:visibility="gone" />
 
         <TextView

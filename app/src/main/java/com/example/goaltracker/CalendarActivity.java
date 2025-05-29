@@ -34,6 +34,13 @@ public class CalendarActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        ThemeManager.applyTheme(this);
+        
+        if (!GoalTrackerApp.checkAuthenticationStatus(this)) {
+            return;
+        }
+        
         setContentView(R.layout.activity_calendar);
 
         try {
@@ -49,6 +56,8 @@ public class CalendarActivity extends AppCompatActivity {
             ThemeManager.applyNavigationButtonStyle(backButton);
             
             applyThemeColors();
+            
+            backButton.setOnClickListener(v -> finish());
 
             habitsAdapter = new ArrayAdapter<>(this, 
                 R.layout.calendar_list_item, android.R.id.text1, completedHabits);
@@ -129,6 +138,12 @@ public class CalendarActivity extends AppCompatActivity {
                cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
                cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH);
     }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        GoalTrackerApp.checkAuthenticationStatus(this);
+    }
 
 
     private void applyThemeColors() {
@@ -140,7 +155,6 @@ public class CalendarActivity extends AppCompatActivity {
         if (rootView != null) {
             View mainLayout = ((ViewGroup) rootView).getChildAt(0);
             if (mainLayout != null) {
-
                 int lightPrimaryColor = lightenColor(primaryColor, 0.8f);
                 mainLayout.setBackgroundColor(lightPrimaryColor);
             }

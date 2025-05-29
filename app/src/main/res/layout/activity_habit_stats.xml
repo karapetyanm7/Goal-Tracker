@@ -21,7 +21,7 @@
             android:padding="12dp"
             android:scaleType="fitCenter"
             android:contentDescription="Back"
-            android:tint="@color/text_primary" />
+            app:tint="@color/text_primary" />
 
         <TextView
             android:layout_width="0dp"
@@ -148,3 +148,4 @@
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
+

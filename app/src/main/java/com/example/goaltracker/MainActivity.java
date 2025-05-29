@@ -75,10 +75,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
         mAuth = FirebaseAuth.getInstance();
         
-
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         Intent alarmIntent = new Intent(this, NotificationReceiver.class);
         pendingIntent = PendingIntent.getBroadcast(this, 0, alarmIntent, PendingIntent.FLAG_IMMUTABLE);
@@ -87,20 +85,13 @@ public class MainActivity extends AppCompatActivity {
         
         setContentView(R.layout.activity_main);
         
-
         fixStatusBarColor();
 
-
-        if (!isUserLoggedIn()) {
-
-            Log.d(TAG, "User not signed in, redirecting to LoginActivity");
-            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-            startActivity(intent);
-            finish();
+        if (!checkLoginStatus()) {
             return;
         }
         Log.d(TAG, "User is signed in");
-
+        
         habitDetailLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -112,22 +103,49 @@ public class MainActivity extends AppCompatActivity {
                             if (action.equals("delete")) {
                                 String habitName = data.getStringExtra("habit_name");
                                 if (habitName != null) {
-
                                     for (int i = 0; i < habits.size(); i++) {
                                         if (habits.get(i).name.equals(habitName)) {
-                                            habits.remove(i);
-                                            habitAdapter.notifyDataSetChanged();
+                                            final int position = i;
+                                            
+                                            View itemView = getViewByPosition(position, habitListView);
+                                            if (itemView != null) {
+                                                itemView.animate()
+                                                    .alpha(0f)
+                                                    .setDuration(1000)
+                                                    .withEndAction(() -> {
+                                                        if (position < habits.size()) {
+                                                            habits.remove(position);
+                                                            saveHabits();
+                                                            if (streaks.containsKey(habitName)) {
+                                                                streaks.remove(habitName);
+                                                                saveStreaks();
+                                                            }
+                                                            habitAdapter.notifyDataSetChanged();
+                                                        }
+                                                    })
+                                                    .start();
+                                            } else {
+                                                new android.os.Handler().postDelayed(() -> {
+                                                    if (position < habits.size()) {
+                                                        habits.remove(position);
+                                                        saveHabits();
+                                                        if (streaks.containsKey(habitName)) {
+                                                            streaks.remove(habitName);
+                                                            saveStreaks();
+                                                        }
+                                                        habitAdapter.notifyDataSetChanged();
+                                                    }
+                                                }, 1000);
+                                            }
                                             break;
                                         }
                                     }
                                 }
                             } else if (action.equals("edit")) {
-
                                 String oldName = data.getStringExtra("old_habit_name");
                                 String newName = data.getStringExtra("new_habit_name");
                                 
                                 if (oldName != null && newName != null) {
-
                                     for (int i = 0; i < habits.size(); i++) {
                                         if (habits.get(i).name.equals(oldName)) {
                                             habits.get(i).name = newName;
@@ -135,7 +153,6 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     }
                                     
-
                                     if (streaks.containsKey(oldName)) {
                                         int streak = streaks.get(oldName);
                                         streaks.remove(oldName);
@@ -147,7 +164,6 @@ public class MainActivity extends AppCompatActivity {
                             } else if (action.equals("update")) {
                                 String habitName = data.getStringExtra("habit_name");
                                 if (habitName != null) {
-
                                     habitAdapter.notifyDataSetChanged();
                                 }
                             }
@@ -161,12 +177,11 @@ public class MainActivity extends AppCompatActivity {
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK) {
-
                     recreate();
                 }
             });
 
-        sharedPreferences = getSharedPreferences(ThemeManager.PREF_NAME, Context.MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences("GoalTrackerPrefs", Context.MODE_PRIVATE);
 
         habits = new ArrayList<>();
         Set<String> habitSet = sharedPreferences.getStringSet("habits", new HashSet<>());
@@ -194,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
         habitAdapter = new HabitAdapter(this, habits);
         habitListView.setAdapter(habitAdapter);
 
-        updateThemeToggleButton(ThemeManager.isDarkMode(this));
+        // Dark mode has been removed
         
 
         applyThemeColors();
@@ -216,44 +231,61 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void finish() {
+        super.finish();
+    }
+    
+    @Override
     protected void onResume() {
         super.onResume();
         
-
-        refreshHabitsList();
+        // Check login status whenever the activity becomes visible
+        if (checkLoginStatus()) {
+            // Only refresh habits if user is logged in
+            refreshHabitsList();
+        }
     }
     
+    /**
+     * Checks if user is currently logged in, redirects to login screen if not
+     * @return boolean true if user is logged in, false otherwise
+     */
+    private boolean checkLoginStatus() {
+        return GoalTrackerApp.checkAuthenticationStatus(this);
+    }    
 
     private void refreshHabitsList() {
-
-        Set<String> latestHabitSet = sharedPreferences.getStringSet("habits", new HashSet<>());
+        Log.d(TAG, "Refreshing habits list");
         
-
-        habits.clear();
+        if (!habits.isEmpty()) {
+            Log.d(TAG, "Habits list already contains " + habits.size() + " items");
+            streaks = loadStreaks();
+            if (habitAdapter != null) {
+                habitAdapter.notifyDataSetChanged();
+            }
+            return;
+        }
+        
+        Set<String> latestHabitSet = sharedPreferences.getStringSet("habits", new HashSet<>());
+        Log.d(TAG, "Found " + latestHabitSet.size() + " habits in SharedPreferences");
+        
         for (String habitName : latestHabitSet) {
-            habits.add(new HabitItem(habitName));
+            if (habitName != null && !habitName.isEmpty()) {
+                habits.add(new HabitItem(habitName));
+                Log.d(TAG, "Added habit: " + habitName);
+            }
         }
 
         streaks = loadStreaks();
 
         if (habitAdapter != null) {
             habitAdapter.notifyDataSetChanged();
+            Log.d(TAG, "Notified adapter of data change");
         }
     }
 
     private void setupButtonListeners() {
-
-        themeToggleButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                boolean isDarkMode = ThemeManager.isDarkMode(MainActivity.this);
-                isDarkMode = !isDarkMode;
-                ThemeManager.setDarkMode(MainActivity.this, isDarkMode);
-                updateThemeToggleButton(isDarkMode);
-                
-                recreate();
-            }
-        });
+        themeToggleButton.setVisibility(View.GONE);
         
         settingsButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -285,7 +317,6 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-
         habitListView.setOnItemClickListener((parent, view, position, id) -> {
                 HabitItem habit = habits.get(position);
                 Intent intent = new Intent(MainActivity.this, HabitDetailActivity.class);
@@ -298,17 +329,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void updateThemeToggleButton(boolean isDarkMode) {
-        if (isDarkMode) {
-            themeToggleButton.setImageResource(R.drawable.light_icon);
-        } else {
-            themeToggleButton.setImageResource(R.drawable.dark_icon);
-        }
-    }
 
     private void showAddHabitDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Add New Habit");
+        AlertDialog.Builder nameBuilder = new AlertDialog.Builder(this);
+        nameBuilder.setTitle("Add New Habit");
 
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_habit, null);
         EditText habitNameInput = dialogView.findViewById(R.id.habitNameInput);
@@ -316,29 +340,26 @@ public class MainActivity extends AppCompatActivity {
         int primaryColor = ThemeManager.getPrimaryColor(this);
         habitNameInput.getBackground().setColorFilter(primaryColor, android.graphics.PorterDuff.Mode.SRC_ATOP);
 
-        boolean isDarkMode = ThemeManager.isDarkMode(MainActivity.this);
-        if (isDarkMode) {
-            habitNameInput.setTextColor(getResources().getColor(android.R.color.white));
-            habitNameInput.setBackgroundColor(Color.BLACK);
-        } else {
-            habitNameInput.setTextColor(getResources().getColor(android.R.color.black));
-            habitNameInput.setBackgroundColor(Color.WHITE);
-        }
+        habitNameInput.setTextColor(getResources().getColor(android.R.color.black));
+        habitNameInput.setBackgroundColor(Color.WHITE);
 
         LinearLayout dialogContainer = dialogView.findViewById(R.id.dialog_add_habit_container);
         if (dialogContainer != null) {
-            dialogContainer.setBackgroundColor(isDarkMode ? 
-                ContextCompat.getColor(this, R.color.app_card_background) : Color.WHITE);
+            dialogContainer.setBackgroundColor(Color.WHITE);
         }
         
-        builder.setView(dialogView);
+        nameBuilder.setView(dialogView);
 
-        builder.setPositiveButton("Add", (dialog, which) -> {
-                String habitName = habitNameInput.getText().toString().trim();
+        nameBuilder.setPositiveButton("Next", (nameDialog, nameWhich) -> {
+            final String habitName = habitNameInput.getText().toString().trim();
             
-
             if (habitName.isEmpty()) {
                 Toast.makeText(MainActivity.this, "Habit name cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            if (habitName.length() > 15) {
+                Toast.makeText(MainActivity.this, "Habit name cannot exceed 15 characters", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -348,21 +369,23 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
             }
+            
 
             HabitItem newHabit = new HabitItem(habitName);
             habits.add(newHabit);
-                    streaks.put(habitName, 0);
-                    saveHabits();
-                    saveStreaks();
-                    habitAdapter.notifyDataSetChanged();
+            streaks.put(habitName, 0);
+            saveHabits();
+            saveStreaks();
+            habitAdapter.notifyDataSetChanged();
+            
+            Toast.makeText(MainActivity.this, "New habit added: " + habitName, Toast.LENGTH_SHORT).show();
         });
 
-        builder.setNegativeButton("Cancel", null);
-        AlertDialog dialog = builder.create();
+        nameBuilder.setNegativeButton("Cancel", null);
+        AlertDialog dialog = nameBuilder.create();
 
         if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(
-                isDarkMode ? ContextCompat.getColor(this, R.color.app_card_background) : Color.WHITE));
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.WHITE));
         }
 
         dialog.setOnShowListener(dialogInterface -> {
@@ -386,7 +409,6 @@ public class MainActivity extends AppCompatActivity {
         builder.setTitle("Edit Habit");
 
         int primaryColor = ThemeManager.getPrimaryColor(this);
-        boolean isDarkMode = ThemeManager.isDarkMode(this);
 
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -395,31 +417,24 @@ public class MainActivity extends AppCompatActivity {
 
         input.getBackground().setColorFilter(primaryColor, android.graphics.PorterDuff.Mode.SRC_ATOP);
 
-        if (isDarkMode) {
-            input.setTextColor(Color.WHITE);
-            input.setBackgroundColor(Color.BLACK);
-        } else {
-            input.setTextColor(Color.BLACK);
-            input.setBackgroundColor(Color.WHITE);
-        }
+        input.setTextColor(Color.BLACK);
+        input.setBackgroundColor(Color.WHITE);
 
         LinearLayout container = new LinearLayout(this);
         container.setOrientation(LinearLayout.VERTICAL);
         container.setPadding(16, 16, 16, 16);
-        container.setBackgroundColor(isDarkMode ? 
-            ContextCompat.getColor(this, R.color.app_card_background) : Color.WHITE);
+        container.setBackgroundColor(Color.WHITE);
         container.addView(input);
         
         builder.setView(container);
 
-        builder.setPositiveButton("Save", null); // Set to null first
+        builder.setPositiveButton("Save", null);
         builder.setNegativeButton("Cancel", null);
 
         AlertDialog dialog = builder.create();
 
         if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(
-                isDarkMode ? ContextCompat.getColor(this, R.color.app_card_background) : Color.WHITE));
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.WHITE));
         }
         
         dialog.setOnShowListener(dialogInterface -> {
@@ -485,21 +500,44 @@ public class MainActivity extends AppCompatActivity {
         habitAdapter.notifyDataSetChanged();
     }
 
-    private ArrayList<HabitItem> loadHabits() {
-        ArrayList<HabitItem> habitList = new ArrayList<>();
-        int size = sharedPreferences.getInt("habits_size", 0);
-        for (int i = 0; i < size; i++) {
-            habitList.add(new HabitItem(sharedPreferences.getString("habit_" + i, null)));
+    private void loadHabits() {
+        Log.d(TAG, "Loading habits from SharedPreferences");
+        Set<String> habitSet = sharedPreferences.getStringSet("habits", new HashSet<>());
+        habits.clear();
+        
+        for (String habitName : habitSet) {
+            if (habitName != null && !habitName.isEmpty()) {
+                habits.add(new HabitItem(habitName));
+                Log.d(TAG, "Loaded habit: " + habitName);
+            }
         }
-        return habitList;
+        
+        if (habits.isEmpty()) {
+            Log.d(TAG, "No habits found in SharedPreferences");
+        } else {
+            Log.d(TAG, "Loaded " + habits.size() + " habits");
+        }
     }
 
     private void saveHabits() {
+        Log.d(TAG, "Saving " + habits.size() + " habits to SharedPreferences");
         Set<String> habitSet = new HashSet<>();
         for (HabitItem habit : habits) {
-            habitSet.add(habit.name);
+            if (habit.name != null && !habit.name.isEmpty()) {
+                habitSet.add(habit.name);
+                Log.d(TAG, "Saving habit: " + habit.name);
+            }
         }
-        sharedPreferences.edit().putStringSet("habits", habitSet).apply();
+        
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putStringSet("habits", habitSet);
+        boolean success = editor.commit();
+        
+        if (success) {
+            Log.d(TAG, "Successfully saved habits");
+        } else {
+            Log.e(TAG, "Failed to save habits");
+        }
     }
 
     private HashMap<String, Integer> loadStreaks() {
@@ -534,82 +572,9 @@ public class MainActivity extends AppCompatActivity {
             TextView streakText = convertView.findViewById(R.id.streakText);
 
             int primaryColor = ThemeManager.getPrimaryColor(MainActivity.this);
-
-            View itemContainer = convertView.findViewById(R.id.habit_item_container);
-
-            ViewGroup cardView = (ViewGroup) convertView;
-            if (cardView != null) {
-
-                int cardColor = darkenColor(primaryColor, 0.8f);
-                
-
-                try {
-
-                    Class<?> cardViewClass = cardView.getClass();
-                    java.lang.reflect.Method setCardBackgroundColorMethod = 
-                        cardViewClass.getMethod("setCardBackgroundColor", int.class);
-                    setCardBackgroundColorMethod.invoke(cardView, cardColor);
-                } catch (Exception e) {
-                    cardView.setBackgroundColor(cardColor);
-                    Log.e(TAG, "Failed to set CardView background: " + e.getMessage());
-                }
-            }
-            
-            if (itemContainer != null) {
-
-                itemContainer.setBackgroundColor(Color.TRANSPARENT);
-            }
-
-
-            boolean isDarkColor = isColorDark(primaryColor);
-            int textColor = isDarkColor ? Color.WHITE : Color.BLACK;
-            habitText.setTextColor(textColor);
-
-            HabitItem habit = getItem(position);
-            habitText.setText(habit.name);
-
-            int streak = streaks.containsKey(habit.name) ? streaks.get(habit.name) : 0;
-
-            long lastMarkedTime = sharedPreferences.getLong(habit.name + "_last_marked", 0);
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(Calendar.HOUR_OF_DAY, 0);
-            calendar.set(Calendar.MINUTE, 0);
-            calendar.set(Calendar.SECOND, 0);
-            calendar.set(Calendar.MILLISECOND, 0);
-            long startOfDay = calendar.getTimeInMillis();
-            boolean isMarked = lastMarkedTime >= startOfDay;
-
-            if (streak >= 1) {
-                streakIcon.setVisibility(View.VISIBLE);
-                streakText.setVisibility(View.VISIBLE);
-                streakText.setText(" " + streak);
-                streakText.setTextColor(textColor);
-
-                streakIcon.setImageResource(isMarked ? R.drawable.streak_fire : R.drawable.streak_icon_u);
-
-                streakIcon.setColorFilter(isMarked ? Color.YELLOW : Color.GRAY);
-            } else {
-                streakIcon.setVisibility(View.GONE);
-                streakText.setVisibility(View.GONE);
-            }
-
-            return convertView;
         }
 
-
-        private int darkenColor(int color, float factor) {
-            int alpha = Color.alpha(color);
-            int red = (int) (Color.red(color) * factor);
-            int green = (int) (Color.green(color) * factor);
-            int blue = (int) (Color.blue(color) * factor);
-            return Color.argb(alpha, Math.max(red, 0), Math.max(green, 0), Math.max(blue, 0));
-        }
-
-       
-        private boolean isColorDark(int color) {
-            double darkness = 1 - (0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color)) / 255;
-            return darkness > 0.5;
-        }
+        return convertView;
     }
 
     private void showReminderDialog() {
@@ -923,16 +888,14 @@ public class MainActivity extends AppCompatActivity {
         );
 
         try {
-
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !canScheduleExactAlarms()) {
-
                     alarmManager.setAndAllowWhileIdle(
                         AlarmManager.RTC_WAKEUP,
                         calendar.getTimeInMillis(),
                         pendingIntent
                     );
-                    
+                }
 
                     Toast.makeText(this, "One-time reminder set (inexact) for tomorrow at " + formatTime(calendar), Toast.LENGTH_SHORT).show();
                     
@@ -1051,7 +1014,26 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         cancelAllReminders();
     }
-
+    
+    /**
+     * Helper method to get a view at a specific position in a ListView
+     * @param position The position in the ListView
+     * @param listView The ListView containing the view
+     * @return The View at the specified position, or null if not visible
+     */
+    private View getViewByPosition(int position, ListView listView) {
+        final int firstListItemPosition = listView.getFirstVisiblePosition();
+        final int lastListItemPosition = firstListItemPosition + listView.getChildCount() - 1;
+        
+        if (position < firstListItemPosition || position > lastListItemPosition) {
+            // The view isn't visible
+            return null;
+        }
+        
+        // Calculate the relative position within the visible range
+        final int childIndex = position - firstListItemPosition;
+        return listView.getChildAt(childIndex);
+    }
 
     private String formatTime(Calendar calendar) {
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
@@ -1114,29 +1096,6 @@ public class MainActivity extends AppCompatActivity {
             
             scheduleDailyReminder(calendar);
         }
-        
-
-    }
-
-
-    private boolean isUserLoggedIn() {
-
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            Log.d(TAG, "User signed in with Firebase: " + 
-                (currentUser.getEmail() != null ? currentUser.getEmail() : "No email"));
-            return true;
-        }
-
-        SharedPreferences localPrefs = getSharedPreferences("LocalAuth", Context.MODE_PRIVATE);
-        boolean isLocallyLoggedIn = localPrefs.getBoolean("is_logged_in", false);
-        
-        if (isLocallyLoggedIn) {
-            String email = localPrefs.getString("user_email", "No email");
-            Log.d(TAG, "User signed in locally: " + email);
-            return true;
-        }
-        
         return false;
     }
 
@@ -1282,6 +1241,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void applyThemeColors() {
         int primaryColor = ThemeManager.getPrimaryColor(this);
+        
+        ThemeManager.applyNavigationButtonStyle(calendarButton);
+        ThemeManager.applyNavigationButtonStyle(statsButton);
+        ThemeManager.applyNavigationButtonStyle(reminderButton);
+        ThemeManager.applyNavigationButtonStyle(settingsButton);
+        ThemeManager.applyNavigationButtonStyle(profileButton);
+        ThemeManager.applyNavigationButtonStyle(themeToggleButton);
 
         fixStatusBarColor();
         addButton.setBackgroundColor(primaryColor);
@@ -1290,7 +1256,6 @@ public class MainActivity extends AppCompatActivity {
         if (rootView != null) {
             View mainLayout = ((ViewGroup) rootView).getChildAt(0);
             if (mainLayout != null) {
-
                 int lightPrimaryColor = lightenColor(primaryColor, 0.8f);
                 mainLayout.setBackgroundColor(lightPrimaryColor);
             }
@@ -1299,20 +1264,11 @@ public class MainActivity extends AppCompatActivity {
         if (habitAdapter != null) {
             habitAdapter.notifyDataSetChanged();
         }
-        
 
         if (habitListView != null) {
             habitListView.setDivider(new android.graphics.drawable.ColorDrawable(primaryColor));
             habitListView.setDividerHeight(1);
         }
-        
-
-        ThemeManager.applyNavigationButtonStyle(calendarButton);
-        ThemeManager.applyNavigationButtonStyle(statsButton);
-        ThemeManager.applyNavigationButtonStyle(reminderButton);
-        ThemeManager.applyNavigationButtonStyle(settingsButton);
-        ThemeManager.applyNavigationButtonStyle(profileButton);
-        ThemeManager.applyNavigationButtonStyle(themeToggleButton);
     }
 
 

@@ -32,6 +32,9 @@ public class ThemeSettingsActivity extends AppCompatActivity {
     private View pinkColorBtn;
     private View yellowColorBtn;
     private View grayColorBtn;
+    private View darkBlueColorBtn;
+    private View brownColorBtn;
+    private View beigeColorBtn;
     
     // Theme settings
     private boolean themeChanged = false;
@@ -40,18 +43,15 @@ public class ThemeSettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Get current theme settings before setting the content view
         sharedPreferences = getSharedPreferences(ThemeManager.PREF_NAME, Context.MODE_PRIVATE);
         
         setContentView(R.layout.activity_theme_settings);
         
-        // Initialize UI components
         mainLayout = findViewById(R.id.theme_settings_layout);
         showColorsButton = findViewById(R.id.show_colors_button);
         backButton = findViewById(R.id.theme_settings_back_button);
         colorDialog = findViewById(R.id.color_picker_dialog);
         
-        // Initialize color buttons
         greenColorBtn = findViewById(R.id.green_color);
         blueColorBtn = findViewById(R.id.blue_color);
         purpleColorBtn = findViewById(R.id.purple_color);
@@ -61,29 +61,25 @@ public class ThemeSettingsActivity extends AppCompatActivity {
         pinkColorBtn = findViewById(R.id.pink_color);
         yellowColorBtn = findViewById(R.id.yellow_color);
         grayColorBtn = findViewById(R.id.gray_color);
+        darkBlueColorBtn = findViewById(R.id.dark_blue_color);
+        brownColorBtn = findViewById(R.id.brown_color);
+        beigeColorBtn = findViewById(R.id.beige_color);
 
-        // Set up UI initial state
         colorDialog.setVisibility(View.GONE);
         
-        // Apply color to the "Choose Theme Color" button and background
         applyThemeColors();
 
-        // Set up show colors button
         showColorsButton.setOnClickListener(v -> {
             colorDialog.setVisibility(View.VISIBLE);
         });
         
-        // Set up color selection handlers
         setupColorButtonListeners();
 
-        // Set up back button
         backButton.setOnClickListener(v -> {
             if (themeChanged) {
-                // Return to calling activity and refresh
                 setResult(RESULT_OK);
                 finish();
             } else {
-                // Just go back
                 finish();
             }
         });
@@ -121,6 +117,15 @@ public class ThemeSettingsActivity extends AppCompatActivity {
             } else if (v == grayColorBtn) {
                 colorName = ThemeManager.THEME_GRAY;
                 colorValue = getResources().getColor(R.color.gray_primary);
+            } else if (v == darkBlueColorBtn) {
+                colorName = ThemeManager.THEME_DARK_BLUE;
+                colorValue = getResources().getColor(R.color.dark_blue_primary);
+            } else if (v == brownColorBtn) {
+                colorName = ThemeManager.THEME_BROWN;
+                colorValue = getResources().getColor(R.color.brown_primary);
+            } else if (v == beigeColorBtn) {
+                colorName = ThemeManager.THEME_BEIGE;
+                colorValue = getResources().getColor(R.color.beige_primary);
             } else {
                 return;
             }
@@ -149,6 +154,9 @@ public class ThemeSettingsActivity extends AppCompatActivity {
         pinkColorBtn.setOnClickListener(colorClickListener);
         yellowColorBtn.setOnClickListener(colorClickListener);
         grayColorBtn.setOnClickListener(colorClickListener);
+        darkBlueColorBtn.setOnClickListener(colorClickListener);
+        brownColorBtn.setOnClickListener(colorClickListener);
+        beigeColorBtn.setOnClickListener(colorClickListener);
     }
     
     private void applyThemeColors() {

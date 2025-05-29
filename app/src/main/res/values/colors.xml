@@ -22,6 +22,8 @@
     
     <color name="background">#FFFFFF</color>
     <color name="background_light">#F5F5F5</color>
+    <color name="background_dark">#000000</color>
+    <color name="background_dark_surface">#121212</color>
     <color name="dark_green">#2E7D32</color>
     
 
@@ -48,6 +50,7 @@
     
 
     <color name="orange_primary">#FF9800</color>
+    <color name="text_primary_dark">#FFFFFF</color>
     <color name="orange_primary_dark">#F57C00</color>
     <color name="orange_accent">#FFAB40</color>
     
@@ -75,4 +78,17 @@
     <color name="gray_primary">#607D8B</color>
     <color name="gray_primary_dark">#455A64</color>
     <color name="gray_accent">#90A4AE</color>
+    
+    <color name="dark_blue_primary">#1A237E</color>
+    <color name="dark_blue_primary_dark">#0D1654</color>
+    <color name="dark_blue_accent">#303F9F</color>
+    
+    <color name="brown_primary">#795548</color>
+    <color name="brown_primary_dark">#5D4037</color>
+    <color name="brown_accent">#A1887F</color>
+    
+    <color name="beige_primary">#D7CCA3</color>
+    <color name="beige_primary_dark">#BEB186</color>
+    <color name="beige_accent">#F5F1DE</color>
 </resources>
+

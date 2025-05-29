@@ -35,6 +35,15 @@ public class StatsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Apply theme before setting content view
+        ThemeManager.applyTheme(this);
+        
+        // Check authentication status
+        if (!GoalTrackerApp.checkAuthenticationStatus(this)) {
+            return; // Exit early if not authenticated
+        }
+        
         setContentView(R.layout.activity_stats);
 
         try {
@@ -57,6 +66,17 @@ public class StatsActivity extends AppCompatActivity {
             updateStats();
         } catch (Exception e) {
             Log.e(TAG, "Error in onCreate", e);
+        }
+    }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        
+        // Check authentication status whenever the activity becomes visible
+        if (GoalTrackerApp.checkAuthenticationStatus(this)) {
+            // Only update stats if user is authenticated
+            updateStats();
         }
     }
 
@@ -214,33 +234,31 @@ public class StatsActivity extends AppCompatActivity {
         mostConsistentHabitTextView.setText("Most Consistent Habit: None");
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        updateStats();
-    }
     
 
     private void applyThemeColors() {
-
         int primaryColor = ThemeManager.getPrimaryColor(this);
         this.themeColor = primaryColor;
         
-
+        // Apply background color to main layout
         View rootView = findViewById(android.R.id.content);
         if (rootView != null) {
             View mainLayout = ((ViewGroup) rootView).getChildAt(0);
             if (mainLayout != null) {
-
+                // Apply lightened primary color for background
                 int lightPrimaryColor = lightenColor(primaryColor, 0.8f);
                 mainLayout.setBackgroundColor(lightPrimaryColor);
             }
         }
         
-
+        // Set status bar color to a darker version of primary color for better visibility
         getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        getWindow().setStatusBarColor(primaryColor);
+        int statusBarColor = darkenColor(primaryColor, 0.2f);
+        getWindow().setStatusBarColor(statusBarColor);
+        
+        // Set navigation bar color to match the status bar
+        getWindow().setNavigationBarColor(statusBarColor);
         
 
         if (statsContainer != null) {

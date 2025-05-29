@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -21,6 +22,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import android.view.ViewGroup;
 
 public class HabitStatsActivity extends AppCompatActivity {
 
@@ -45,6 +47,7 @@ public class HabitStatsActivity extends AppCompatActivity {
         
         initializeViews();
         setupBackButton();
+        applyThemeColors();
         updateStats();
     }
 
@@ -65,33 +68,46 @@ public class HabitStatsActivity extends AppCompatActivity {
     }
     
     private void updateStats() {
-        // Get the total number of completions
         int completions = mPrefs.getInt(habitName + "_completed_count", 0);
+        int points = mPrefs.getInt(habitName + "_points", 0);
         completedEverTextView.setText(String.valueOf(completions));
         
-        // Get the last marked date
         long lastMarkedDate = mPrefs.getLong(habitName + "_last_marked", 0);
         
-        // Calculate completions for current week and month
         int weeklyCompletions = getCompletionsForCurrentWeek(lastMarkedDate);
         int monthlyCompletions = getCompletionsForCurrentMonth(lastMarkedDate);
         
         completedThisWeekTextView.setText(String.valueOf(weeklyCompletions));
         completedThisMonthTextView.setText(String.valueOf(monthlyCompletions));
         
-        // Add advanced statistics
         int currentStreak = mPrefs.getInt(habitName + "_streak", 0);
         int maxStreak = mPrefs.getInt(habitName + "_max_streak", 0);
-        int points = mPrefs.getInt(habitName + "_points", 0);
         long creationDate = mPrefs.getLong(habitName + "_created", System.currentTimeMillis());
         
-        boolean isDarkMode = ThemeManager.isDarkMode(this);
-        int textColor = isDarkMode ? 
-                ContextCompat.getColor(this, R.color.text_primary_dark) : 
-                ContextCompat.getColor(this, R.color.text_primary);
+        long daysSinceCreation = TimeUnit.MILLISECONDS.toDays(
+            System.currentTimeMillis() - creationDate) + 1;
         
-        addAdvancedStats(advancedStatsContainer, completions, currentStreak, maxStreak, 
-                points, creationDate, isDarkMode, textColor);
+        double successRate = daysSinceCreation > 0 ? 
+            Math.min(100, Math.round((completions * 100.0) / daysSinceCreation)) : 0;
+        
+        double consistencyScore = daysSinceCreation > 0 ? 
+            Math.min(100, Math.round((currentStreak * 100.0) / daysSinceCreation)) : 0;
+
+        int textColor = ContextCompat.getColor(this, R.color.text_primary);
+        
+        addAdvancedStats(advancedStatsContainer, points, currentStreak, maxStreak, 
+                points, creationDate, textColor, (int)daysSinceCreation, (int)successRate, 
+                (int)consistencyScore);
+    }
+    
+    private String getMilestoneText(int points) {
+        if (points < 200) {
+            return "Milestone: " + points + "/200";
+        } else if (points < 500) {
+            return "Milestone: " + points + "/500";
+        } else {
+            return "Master Milestone: " + points + "+";
+        }
     }
     
     private int getCompletionsForCurrentWeek(long lastMarkedDate) {
@@ -102,10 +118,10 @@ public class HabitStatsActivity extends AppCompatActivity {
         
         Calendar currentCal = Calendar.getInstance();
         
-        // Check if the lastMarkedDate is in the current week
+
         if (cal.get(Calendar.YEAR) == currentCal.get(Calendar.YEAR) && 
             cal.get(Calendar.WEEK_OF_YEAR) == currentCal.get(Calendar.WEEK_OF_YEAR)) {
-            return 1; // Assuming one completion per day
+            return 1;
         }
         
         return 0;
@@ -119,119 +135,124 @@ public class HabitStatsActivity extends AppCompatActivity {
         
         Calendar currentCal = Calendar.getInstance();
         
-        // Check if the lastMarkedDate is in the current month
+
         if (cal.get(Calendar.YEAR) == currentCal.get(Calendar.YEAR) && 
             cal.get(Calendar.MONTH) == currentCal.get(Calendar.MONTH)) {
-            return 1; // Assuming one completion per day
+            return 1;
         }
         
         return 0;
     }
     
-    private void addAdvancedStats(LinearLayout container, int completions, int currentStreak, 
-                                 int maxStreak, int points, long creationDate, 
-                                 boolean isDarkMode, int textColor) {
-        // Clear any existing views
+    private void addAdvancedStats(LinearLayout container, int points, int currentStreak, int maxStreak,
+                               int pointsEarned, long creationDate, int textColor, int daysSinceCreation,
+                               int successRate, int consistencyScore) {
         container.removeAllViews();
-        
-        // Calculate days since creation
-        long daysTracked = TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis() - creationDate) + 1;
-        if (daysTracked < 1) daysTracked = 1; // Ensure we don't divide by zero
-        
-        // Create a CardView for advanced stats
+
+
+        addStreakCard(container, currentStreak, maxStreak, textColor, daysSinceCreation, 
+                     successRate, consistencyScore);
+    }
+    
+    private void addStreakCard(LinearLayout container, int currentStreak, int maxStreak, int textColor,
+                             int daysSinceCreation, int successRate, int consistencyScore) {
         CardView cardView = new CardView(this);
-        CardView.LayoutParams cardParams = new CardView.LayoutParams(
-                CardView.LayoutParams.MATCH_PARENT,
-                CardView.LayoutParams.WRAP_CONTENT
-        );
-        cardParams.setMargins(0, 0, 0, 32);
-        cardView.setLayoutParams(cardParams);
-        cardView.setRadius(32);
-        cardView.setElevation(8);
-        cardView.setCardBackgroundColor(ThemeManager.getPrimaryColor(this));
+        cardView.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
+        cardView.setCardElevation(4);
+        cardView.setRadius(8);
+        cardView.setCardBackgroundColor(ContextCompat.getColor(this, R.color.app_card_background));
         
-        // Create a container for the stats
         LinearLayout statsLayout = new LinearLayout(this);
         statsLayout.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
         ));
         statsLayout.setOrientation(LinearLayout.VERTICAL);
-        statsLayout.setPadding(32, 32, 32, 32);
+        statsLayout.setPadding(16, 16, 16, 16);
         
-        // Add the title
-        addSectionTitle(statsLayout, "Advanced Statistics", Color.WHITE);
-        
-        // Add stats
-        addSeparator(statsLayout);
-        
-        // Days tracked
-        SimpleDateFormat sdf = new SimpleDateFormat("MMM d, yyyy", Locale.getDefault());
-        String startDate = sdf.format(new Date(creationDate));
-        addStatRow(statsLayout, "Days Tracked:", String.valueOf(daysTracked), Color.WHITE);
-        
-        // Success Rate
-        float successRate = (float) completions / daysTracked * 100;
-        addStatRow(statsLayout, "Success Rate:", String.format("%.1f%%", successRate), Color.WHITE);
-        
-        // Average points per day
-        float avgPointsPerDay = (float) points / daysTracked;
-        addStatRow(statsLayout, "Average Points Per Day:", String.format("%.1f", avgPointsPerDay), Color.WHITE);
-        
-        // Streak Efficiency
-        float streakEfficiency = daysTracked > 0 ? (float) maxStreak / daysTracked * 100 : 0;
-        addStatRow(statsLayout, "Streak Efficiency:", String.format("%.1f%%", streakEfficiency), Color.WHITE);
-        
-        // Consistency Score
-        int consistencyScore = calculateConsistencyScore(successRate, currentStreak, maxStreak);
-        addStatRow(statsLayout, "Consistency Score:", consistencyScore + "/100", Color.WHITE);
-        
-        // Add feedback based on consistency score
-        addSeparator(statsLayout);
-        addSectionTitle(statsLayout, "Feedback", Color.WHITE);
-        
-        String feedback;
-        if (consistencyScore >= 90) {
-            feedback = "Excellent! You're maintaining this habit exceptionally well.";
-        } else if (consistencyScore >= 70) {
-            feedback = "Good job! You're consistently keeping up with this habit.";
-        } else if (consistencyScore >= 50) {
-            feedback = "You're doing okay, but there's room for improvement in consistency.";
-        } else if (consistencyScore >= 30) {
-            feedback = "You're struggling with consistency. Try setting reminders or adjusting your goal.";
+        int points = mPrefs.getInt(habitName + "_points", 0);
+        String milestoneText = getMilestoneText(points);
+        int progress;
+        if (points < 200) {
+            progress = (points * 100) / 200;
+        } else if (points < 500) {
+            progress = ((points - 200) * 100) / 300;
         } else {
-            feedback = "This habit needs more attention. Consider revising your approach or setting a more achievable goal.";
+            progress = 100;
         }
         
-        TextView feedbackView = new TextView(this);
-        feedbackView.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        ));
-        feedbackView.setText(feedback);
-        feedbackView.setTextColor(Color.WHITE);
-        feedbackView.setPadding(0, 16, 0, 16);
-        statsLayout.addView(feedbackView);
-        
-        // Add the stats layout to the card
+        addProgressBar(statsLayout, milestoneText, progress, textColor);
+
+        addStatRow(statsLayout, "Success Rate:", successRate + "%", textColor);
+
         cardView.addView(statsLayout);
-        
-        // Add the card to the container
         container.addView(cardView);
     }
     
-    private void addSectionTitle(LinearLayout container, String title, int textColor) {
-        TextView titleView = new TextView(this);
-        titleView.setLayoutParams(new LinearLayout.LayoutParams(
+    private void addProgressBar(LinearLayout container, String label, int progress, int textColor) {
+        LinearLayout row = new LinearLayout(this);
+        row.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
         ));
-        titleView.setText(title);
-        titleView.setTextColor(textColor);
-        titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
-        titleView.setTypeface(null, Typeface.BOLD);
-        titleView.setPadding(0, 16, 0, 16);
-        container.addView(titleView);
+        row.setOrientation(LinearLayout.VERTICAL);
+        row.setPadding(0, 16, 0, 8);
+        
+
+        TextView labelView = new TextView(this);
+        labelView.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
+        labelView.setText(label);
+        labelView.setTextColor(textColor);
+        labelView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        row.addView(labelView);
+        LinearLayout progressBarLayout = new LinearLayout(this);
+        progressBarLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dpToPx(16)
+        ));
+        progressBarLayout.setBackgroundResource(R.drawable.progress_bar_background);
+        progressBarLayout.setPadding(2, 2, 2, 2);
+        
+        View progressView = new View(this);
+        int width = (int)((progress / 100.0) * (getResources().getDisplayMetrics().widthPixels * 0.8));
+        progressView.setLayoutParams(new LinearLayout.LayoutParams(
+                width,
+                LinearLayout.LayoutParams.MATCH_PARENT
+        ));
+        progressView.setBackgroundResource(R.drawable.progress_bar);
+        
+        progressBarLayout.addView(progressView);
+        row.addView(progressBarLayout);
+        
+        container.addView(row);
+    }
+    
+    private int dpToPx(int dp) {
+        float density = getResources().getDisplayMetrics().density;
+        return Math.round(dp * density);
+    }
+    
+    private int calculateProgressToNextMilestone(int points) {
+        if (points < 200) {
+            return (points * 100) / 200;
+        } else if (points < 500) {
+
+            return ((points - 200) * 100) / 300;
+        }
+        return 100;
+    }
+    
+    private String formatWithEmoji(int value, String emoji) {
+        if (value > 0) {
+            return value + " " + emoji;
+        }
+        return String.valueOf(value);
     }
     
     private void addStatRow(LinearLayout container, String label, String value, int textColor) {
@@ -278,21 +299,39 @@ public class HabitStatsActivity extends AppCompatActivity {
         container.addView(separator);
     }
     
-    private int calculateConsistencyScore(float successRate, int currentStreak, int maxStreak) {
-        // Weight factors
-        float successWeight = 0.5f;
-        float currentStreakWeight = 0.3f;
-        float maxStreakWeight = 0.2f;
+
+    
+    private void applyThemeColors() {
+        int primaryColor = ThemeManager.getPrimaryColor(this);
+
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null) {
+            View mainLayout = ((ViewGroup) rootView).getChildAt(0);
+            if (mainLayout != null) {
+                int lightPrimaryColor = lightenColor(primaryColor, 0.8f);
+                mainLayout.setBackgroundColor(lightPrimaryColor);
+            }
+        }
         
-        // Normalize streak values (assuming 30 days is a perfect score)
-        float normalizedCurrentStreak = Math.min(currentStreak / 30.0f, 1.0f) * 100;
-        float normalizedMaxStreak = Math.min(maxStreak / 30.0f, 1.0f) * 100;
+        getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        int statusBarColor = darkenColor(primaryColor, 0.2f);
+        getWindow().setStatusBarColor(statusBarColor);
         
-        // Calculate weighted score
-        float score = (successRate * successWeight) +
-                     (normalizedCurrentStreak * currentStreakWeight) +
-                     (normalizedMaxStreak * maxStreakWeight);
-        
-        return Math.round(score);
+        getWindow().setNavigationBarColor(statusBarColor);
+    }
+    
+    private int lightenColor(int color, float factor) {
+        int red = (int) ((Color.red(color) * (1 - factor) + 255 * factor));
+        int green = (int) ((Color.green(color) * (1 - factor) + 255 * factor));
+        int blue = (int) ((Color.blue(color) * (1 - factor) + 255 * factor));
+        return Color.rgb(red, green, blue);
+    }
+    
+    private int darkenColor(int color, float factor) {
+        int red = (int) (Color.red(color) * (1 - factor));
+        int green = (int) (Color.green(color) * (1 - factor));
+        int blue = (int) (Color.blue(color) * (1 - factor));
+        return Color.rgb(red, green, blue);
     }
 }
