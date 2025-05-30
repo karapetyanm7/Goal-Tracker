@@ -122,7 +122,7 @@ public class ReminderActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         
-        // Check authentication status whenever the activity becomes visible
+
         GoalTrackerApp.checkAuthenticationStatus(this);
     }
     
@@ -215,7 +215,7 @@ public class ReminderActivity extends AppCompatActivity {
             builder.setView(dialogView);
             builder.setTitle("Set Reminder");
             
-            // Get theme primary color
+
             int primaryColor = ThemeManager.getPrimaryColor(this);
 
             CheckBox everydayCheckBox = dialogView.findViewById(R.id.everydayCheckBox);
@@ -240,7 +240,7 @@ public class ReminderActivity extends AppCompatActivity {
 
             Button selectHabitButton = dialogView.findViewById(R.id.selectHabitButton);
             
-            // Apply theme color to the select habit button if it exists
+
             if (selectHabitButton != null) {
                 selectHabitButton.setBackgroundColor(primaryColor);
             }
@@ -343,7 +343,7 @@ public class ReminderActivity extends AppCompatActivity {
         for (String habitName : habitSet) {
             try {
                 if (habitName != null && !habitName.isEmpty()) {
-                    // In MainActivity, habits are stored as simple strings, not in id|name format
+
                     habitIds.add(id);
                     habitNames.add(habitName);
                     id++;
@@ -815,7 +815,7 @@ public class ReminderActivity extends AppCompatActivity {
         for (String habitName : habitSet) {
             try {
                 if (habitName != null && !habitName.isEmpty()) {
-                    // In MainActivity, habits are stored as simple strings, not in id|name format
+
                     habitIds.add(id);
                     habitNames.add(habitName);
                     id++;
@@ -965,20 +965,17 @@ public class ReminderActivity extends AppCompatActivity {
             TextView timeText = convertView.findViewById(R.id.reminderTimeText);
             TextView daysText = convertView.findViewById(R.id.reminderDaysText);
             ImageButton deleteButton = convertView.findViewById(R.id.deleteReminderButton);
-            
-            // Apply theme colors to reminder items
+
             int primaryColor = ThemeManager.getPrimaryColor(getContext());
-            
-            // Set card background (always light mode)
+
             View cardView = convertView.findViewById(R.id.reminder_item_card);
             if (cardView != null) {
                 cardView.setBackgroundColor(Color.WHITE);
             }
-            
-            // Apply text colors
-            typeText.setTextColor(primaryColor); // Keep primary color for type text
-            timeText.setTextColor(Color.DKGRAY); // Use dark gray for time text
-            daysText.setTextColor(Color.DKGRAY); // Use dark gray for days text
+
+            typeText.setTextColor(primaryColor);
+            timeText.setTextColor(Color.DKGRAY);
+            daysText.setTextColor(Color.DKGRAY);
             
             String typeLabel;
             if (reminder.isHabitSpecific()) {
@@ -991,7 +988,7 @@ public class ReminderActivity extends AppCompatActivity {
             timeText.setText(reminder.time);
             daysText.setText(reminder.days);
             
-            // Apply theme color to delete button
+
             deleteButton.setColorFilter(primaryColor);
             
             deleteButton.setOnClickListener(v -> {
@@ -1000,12 +997,10 @@ public class ReminderActivity extends AppCompatActivity {
                        .setMessage("Are you sure you want to delete this reminder?")
                        .setPositiveButton("Delete", (dialog, which) -> deleteReminder(position))
                        .setNegativeButton("Cancel", null);
-                
-                // Create dialog
+
                 AlertDialog dialog = builder.create();
                 dialog.show();
-                
-                // Set button colors
+
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(primaryColor);
                 dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(primaryColor);
             });
@@ -1046,70 +1041,57 @@ public class ReminderActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Apply theme colors including background to the activity
-     */
+
     private void applyThemeColors() {
-        // Get the primary color from ThemeManager
+
         int primaryColor = ThemeManager.getPrimaryColor(this);
         
-        // Apply to buttons - with null check
+
         if (addReminderButton != null) {
             addReminderButton.setBackgroundColor(primaryColor);
         }
-        
-        // Apply color to the header layout
+
         RelativeLayout headerLayout = findViewById(R.id.reminderHeaderLayout);
         if (headerLayout != null) {
             headerLayout.setBackgroundColor(primaryColor);
         }
-        
-        // Apply background color to the main layout
         View rootView = findViewById(android.R.id.content);
         if (rootView != null) {
             View mainLayout = ((ViewGroup) rootView).getChildAt(0);
             if (mainLayout != null) {
-                // Apply lightened primary color for background
                 int lightPrimaryColor = lightenColor(primaryColor, 0.8f);
                 mainLayout.setBackgroundColor(lightPrimaryColor);
             }
         }
-        
-        // Apply color to NoRemindersText if it's visible
+
         if (noRemindersText != null) {
             noRemindersText.setTextColor(Color.DKGRAY);
         }
         
-        // Set the status bar color to match the primary theme color
+
         getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         getWindow().setStatusBarColor(primaryColor);
-        
-        // Force refresh of list items if adapter is already set
+
         if (reminderAdapter != null) {
             reminderAdapter.notifyDataSetChanged();
         }
         
-        // Update list background
+
         ListView reminderListView = findViewById(R.id.reminderListView);
         if (reminderListView != null) {
             reminderListView.setBackgroundColor(Color.WHITE);
         }
     }
     
-    /**
-     * Helper method to create a lighter version of a color
-     */
+
     private int lightenColor(int color, float factor) {
         int red = (int) ((Color.red(color) * (1 - factor) + 255 * factor));
         int green = (int) ((Color.green(color) * (1 - factor) + 255 * factor));
         int blue = (int) ((Color.blue(color) * (1 - factor) + 255 * factor));
         return Color.rgb(red, green, blue);
     }
-    
-    /**
-     * Helper method to create a darker version of a color
-     */
+
     private int darkenColor(int color, float factor) {
         int red = (int) (Color.red(color) * factor);
         int green = (int) (Color.green(color) * factor);

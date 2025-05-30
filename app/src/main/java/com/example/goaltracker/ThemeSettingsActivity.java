@@ -16,13 +16,13 @@ public class ThemeSettingsActivity extends AppCompatActivity {
 
     private SharedPreferences sharedPreferences;
     
-    // Theme UI elements
+
     private Button showColorsButton;
     private ImageButton backButton;
     private View colorDialog;
     private ConstraintLayout mainLayout;
     
-    // Color buttons
+
     private View greenColorBtn;
     private View blueColorBtn;
     private View purpleColorBtn;
@@ -35,8 +35,7 @@ public class ThemeSettingsActivity extends AppCompatActivity {
     private View darkBlueColorBtn;
     private View brownColorBtn;
     private View beigeColorBtn;
-    
-    // Theme settings
+
     private boolean themeChanged = false;
 
     @Override
@@ -130,21 +129,20 @@ public class ThemeSettingsActivity extends AppCompatActivity {
                 return;
             }
             
-            // Save the selected color theme
+
             ThemeManager.setColorTheme(this, colorName);
             ThemeManager.setPrimaryColor(this, colorValue);
             themeChanged = true;
-            
-            // Apply color change immediately to some UI elements
+
             applyColorToUI(colorValue);
             
-            // Hide color picker
+
             colorDialog.setVisibility(View.GONE);
             
             Toast.makeText(this, "Theme color updated to " + colorName, Toast.LENGTH_SHORT).show();
         };
         
-        // Attach the click listener to all color buttons
+
         greenColorBtn.setOnClickListener(colorClickListener);
         blueColorBtn.setOnClickListener(colorClickListener);
         purpleColorBtn.setOnClickListener(colorClickListener);
@@ -162,42 +160,34 @@ public class ThemeSettingsActivity extends AppCompatActivity {
     private void applyThemeColors() {
         int primaryColor = ThemeManager.getPrimaryColor(this);
         
-        // Set the status bar color to match the primary theme color
-        // Clear any existing flags first to ensure proper coloring
+
         getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         getWindow().setStatusBarColor(primaryColor);
         
-        // Apply color to the Choose Theme Color button
+
         showColorsButton.setBackgroundColor(primaryColor);
-        
-        // Apply a light version of the primary color to the background
+
         if (mainLayout != null) {
             int lightPrimaryColor = lightenColor(primaryColor, 0.8f);
             mainLayout.setBackgroundColor(lightPrimaryColor);
         }
-        
-        // Apply consistent styling to navigation buttons
+
         ThemeManager.applyNavigationButtonStyle(backButton);
     }
 
     private void applyColorToUI(int colorValue) {
-        // Apply the color change to buttons and other UI elements directly
         showColorsButton.setBackgroundColor(colorValue);
-        
-        // Set the status bar color to match the new theme color
         getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         getWindow().setStatusBarColor(colorValue);
-        
-        // Apply a light version of the color to the background
         int lightColor = lightenColor(colorValue, 0.8f);
         if (mainLayout != null) {
             mainLayout.setBackgroundColor(lightColor);
         }
     }
 
-    // Helper method to lighten a color for backgrounds
+
     private int lightenColor(int color, float factor) {
         int alpha = android.graphics.Color.alpha(color);
         int red = (int) (android.graphics.Color.red(color) + (255 - android.graphics.Color.red(color)) * factor);

@@ -10,7 +10,7 @@ import androidx.core.content.ContextCompat;
 public class ThemeUtils {
 
     public static final String PREF_NAME = "GoalTracker";
-    // Dark mode has been removed
+
     public static final String KEY_COLOR_THEME = "color_theme";
 
     public static final String THEME_GREEN = "green";
@@ -26,7 +26,7 @@ public class ThemeUtils {
     public static void applyTheme(Activity activity) {
     }
 
-    // Dark mode functionality has been removed
+
 
     public static String getColorTheme(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);

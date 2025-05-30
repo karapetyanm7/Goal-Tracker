@@ -166,7 +166,7 @@ public class SignupActivity extends AppCompatActivity {
         Log.d(TAG, "User created successfully");
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
-            // Set display name
+
             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                     .setDisplayName(name)
                     .build();
@@ -180,7 +180,7 @@ public class SignupActivity extends AppCompatActivity {
                         }
                     });
             
-            // Send email verification
+
             sendEmailVerification(user);
             
             Log.d(TAG, "User object obtained, saving to Firestore");
@@ -188,8 +188,7 @@ public class SignupActivity extends AppCompatActivity {
             
             progressBar.setVisibility(View.GONE);
             signupButton.setEnabled(true);
-            
-            // Show verification dialog instead of automatically navigating to MainActivity
+
             showEmailVerificationDialog(email);
         } else {
             Log.e(TAG, "User is null after successful creation");
@@ -206,10 +205,9 @@ public class SignupActivity extends AppCompatActivity {
         }
         
         try {
-            // Always send verification email regardless of debug mode
+
             Log.d(TAG, "Attempting to send verification email");
-            
-            // Simple verification without any custom settings
+
             user.sendEmailVerification()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -223,7 +221,7 @@ public class SignupActivity extends AppCompatActivity {
                 });
         } catch (Exception e) {
             Log.e(TAG, "Exception while sending verification email", e);
-            // Don't let this crash the signup flow
+
         }
     }
     
@@ -233,10 +231,9 @@ public class SignupActivity extends AppCompatActivity {
         builder.setMessage("We've sent a verification email to " + email + ". Please check your inbox and click the verification link to activate your account.");
         builder.setCancelable(false);
         builder.setPositiveButton("OK", (dialog, which) -> {
-            // Sign out the user until they verify their email
+
             mAuth.signOut();
-            
-            // Return to login screen
+
             Toast.makeText(SignupActivity.this, "Account created! Please verify your email before logging in.", 
                     Toast.LENGTH_LONG).show();
             Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
@@ -259,19 +256,18 @@ public class SignupActivity extends AppCompatActivity {
         if (error.contains("email already in use")) {
             emailEditText.setError("Email already registered");
         } else if (error.contains("CONFIGURATION_NOT_FOUND")) {
-            // This is likely due to missing reCAPTCHA configuration in Firebase
-            // Implement a simplified login just to get the app working (development only)
+
             String email = emailEditText.getText().toString().trim();
             String password = passwordEditText.getText().toString().trim();
             String name = nameEditText.getText().toString().trim();
             
-            // For demo purposes - simulate successful registration
+
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Development Mode");
             builder.setMessage("Firebase reCAPTCHA configuration not found. In a production app, you would need to complete Firebase configuration. For now, we'll simulate a successful signup.");
             builder.setPositiveButton("Continue", (dialog, which) -> {
                 Toast.makeText(this, "Demo account created!", Toast.LENGTH_SHORT).show();
-                // Go straight to main activity
+
                 Intent intent = new Intent(SignupActivity.this, MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 SharedPreferences prefs = getSharedPreferences("UserData", Context.MODE_PRIVATE);
@@ -314,19 +310,19 @@ public class SignupActivity extends AppCompatActivity {
                 .getDynamicLink(getIntent())
                 .addOnSuccessListener(this, pendingDynamicLinkData -> {
                     if (pendingDynamicLinkData != null) {
-                        // Get deep link from result
+
                         android.net.Uri deepLink = pendingDynamicLinkData.getLink();
                         Log.d(TAG, "Deep link received: " + (deepLink != null ? deepLink.toString() : "null"));
                         
                         if (deepLink != null) {
-                            // Handle the verification link
+
                             String path = deepLink.getPath();
                             if (path != null && path.contains("/verify")) {
                                 String email = deepLink.getQueryParameter("email");
                                 Log.d(TAG, "Email verification from deep link for: " + email);
                                 Toast.makeText(this, "Email verified successfully!", Toast.LENGTH_LONG).show();
                                 
-                                // Redirect to login
+
                                 Intent intent = new Intent(this, LoginActivity.class);
                                 intent.putExtra("verified_email", email);
                                 startActivity(intent);

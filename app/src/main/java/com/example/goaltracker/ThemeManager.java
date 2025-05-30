@@ -75,7 +75,7 @@ public class ThemeManager {
 
 
     public static void applyTheme(Activity activity) {
-        // Always apply light mode
+
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         activity.setTheme(R.style.AppTheme);
     }
@@ -101,28 +101,18 @@ public class ThemeManager {
     public static void applyNavigationButtonStyle(ImageButton button) {
         if (button != null) {
             button.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-            // Always use default color for light mode
+
             button.clearColorFilter();
         }
     }
     
-    /**
-     * Get background color based on the primary color
-     * @param context The context
-     * @param primaryColor The primary color
-     * @return The appropriate background color
-     */
+
     public static int getBackgroundColorForTheme(Context context, int primaryColor) {
         // Always use lightened primary color
         return lightenColor(primaryColor, 0.8f);
     }
     
-    /**
-     * Lighten a color by a given factor
-     * @param color The color to lighten
-     * @param factor The factor to lighten by (0.0-1.0)
-     * @return The lightened color
-     */
+
     public static int lightenColor(int color, float factor) {
         float[] hsv = new float[3];
         Color.colorToHSV(color, hsv);

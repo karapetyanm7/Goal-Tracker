@@ -100,15 +100,14 @@ public class ProfileActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         currentUser = mAuth.getCurrentUser();
 
-        // Initialize profile UI components
+
         nameTextView = findViewById(R.id.profile_name);
         
-        // Initialize badge views
+
         badge50DaysIcon = findViewById(R.id.badge_50_days_icon);
         badge100DaysIcon = findViewById(R.id.badge_100_days_icon);
         badge365DaysIcon = findViewById(R.id.badge_365_days_icon);
-        
-        // Load and update badges
+
         updateBadgeVisibility();
         emailTextView = findViewById(R.id.profile_email);
         creationDateTextView = findViewById(R.id.profile_creation_date);
@@ -120,22 +119,20 @@ public class ProfileActivity extends AppCompatActivity {
         logoutButton = findViewById(R.id.profile_logout_button);
         backButton = findViewById(R.id.profile_back_button);
         profileImageView = findViewById(R.id.profile_image);
-        
-        // Register image picker launcher and permission launcher
+
         registerImagePickerLauncher();
         registerPermissionLauncher();
-        
-        // Load user data
+
         loadUserData();
         
-        // Set up click listeners
+
         setupClickListeners();
     }
     
     @Override
     public void onBackPressed() {
         if (nameEditLayout.getVisibility() == View.VISIBLE) {
-            // If in edit mode, cancel editing
+
             toggleEditMode(false);
         } else {
             super.onBackPressed();
@@ -143,57 +140,47 @@ public class ProfileActivity extends AppCompatActivity {
     }
     
     private void setupClickListeners() {
-        // Back button
+
         backButton.setOnClickListener(v -> onBackPressed());
         
-        // Edit name button
+
         editNameButton.setOnClickListener(v -> toggleEditMode(true));
-        
-        // Save name button
+
         saveNameButton.setOnClickListener(v -> saveUserName());
-        
-        // Logout button
+
         logoutButton.setOnClickListener(v -> logout());
-        
-        // Profile image click to select new image
+
         profileImageView.setOnClickListener(v -> openImagePicker());
-        
-        // Apply theme colors to buttons
+
         applyThemeColors();
     }
     
-    /**
-     * Apply theme colors to UI elements
-     */
+
     private void applyThemeColors() {
-        // Get the primary color from ThemeManager
+
         int primaryColor = ThemeManager.getPrimaryColor(this);
         
-        // Apply to buttons
+
         saveNameButton.setBackgroundColor(primaryColor);
         logoutButton.setBackgroundColor(primaryColor);
-        
-        // Apply background color to the main layout
+
         View rootView = findViewById(android.R.id.content);
         if (rootView != null) {
             View mainLayout = ((ViewGroup) rootView).getChildAt(0);
             if (mainLayout != null) {
-                // Apply lightened primary color for background
+
                 int lightPrimaryColor = lightenColor(primaryColor, 0.8f);
                 mainLayout.setBackgroundColor(lightPrimaryColor);
             }
         }
         
-        // Set the status bar color to match the primary theme color
-        // Clear any existing flags first to ensure proper coloring
+
         getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         getWindow().setStatusBarColor(primaryColor);
-        
-        // Apply navigation button styling, but not to editNameButton to preserve its icon
+
         ThemeManager.applyNavigationButtonStyle(backButton);
-        
-        // Make sure edit button shows the icon properly
+
         if (editNameButton != null) {
             editNameButton.setImageResource(R.drawable.edit_icon);
             editNameButton.setBackgroundColor(Color.TRANSPARENT);
@@ -201,8 +188,7 @@ public class ProfileActivity extends AppCompatActivity {
             editNameButton.setPadding(8, 8, 8, 8);
         }
     }
-    
-    // Helper method to create a lighter version of a color
+
     private int lightenColor(int color, float factor) {
         int red = (int) ((android.graphics.Color.red(color) * (1 - factor) + 255 * factor));
         int green = (int) ((android.graphics.Color.green(color) * (1 - factor) + 255 * factor));
@@ -212,24 +198,24 @@ public class ProfileActivity extends AppCompatActivity {
     
     private void toggleEditMode(boolean editing) {
         if (editing) {
-            // Show edit layout
+
             nameDisplayLayout.setVisibility(View.GONE);
             nameEditLayout.setVisibility(View.VISIBLE);
             editNameText.setText(userName);
             editNameText.requestFocus();
         } else {
-            // Show display layout
+
             nameDisplayLayout.setVisibility(View.VISIBLE);
             nameEditLayout.setVisibility(View.GONE);
         }
     }
     
     private void updateBadgeVisibility() {
-        // Get the current streak from SharedPreferences
+
         SharedPreferences prefs = getSharedPreferences("HabitPrefs", MODE_PRIVATE);
         currentStreak = prefs.getInt("current_streak", 0);
         
-        // Update badge visibility based on streak
+
         if (currentStreak >= 50) {
             badge50DaysIcon.setVisibility(View.VISIBLE);
         }
@@ -246,37 +232,36 @@ public class ProfileActivity extends AppCompatActivity {
             userEmail = currentUser.getEmail();
             emailTextView.setText(userEmail);
             
-            // Display account creation date
+
             java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("MMMM dd, yyyy", java.util.Locale.ENGLISH);
             
             if (currentUser.getMetadata() != null) {
                 long creationTimestamp = currentUser.getMetadata().getCreationTimestamp();
                 if (creationTimestamp > 0) {
-                    // Format the creation date from Firebase metadata
+
                     String formattedDate = dateFormat.format(new java.util.Date(creationTimestamp));
                     creationDateTextView.setText("Account created: " + formattedDate);
                 } else {
-                    // Use today's date if creation timestamp is not available
+
                     String todayDate = dateFormat.format(new java.util.Date());
                     creationDateTextView.setText("Account created: " + todayDate);
                 }
             } else {
-                // Use today's date if metadata is not available
+
                 String todayDate = dateFormat.format(new java.util.Date());
                 creationDateTextView.setText("Account created: " + todayDate);
             }
             
-            // First check if we have the name stored in SharedPreferences
+
             String savedName = sharedPreferences.getString("user_name", "");
             if (!savedName.isEmpty()) {
                 userName = savedName;
                 nameTextView.setText(userName);
             }
             
-            // Load profile image if exists
+
             loadProfileImage();
-            
-            // If no local name, try to get from Firebase
+
             String uid = currentUser.getUid();
             db.collection("users").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -284,15 +269,15 @@ public class ProfileActivity extends AppCompatActivity {
                         userName = documentSnapshot.getString("name");
                         if (userName != null && !userName.isEmpty()) {
                             nameTextView.setText(userName);
-                            // Also save to SharedPreferences for future use
+
                             sharedPreferences.edit().putString("user_name", userName).apply();
                         } else {
-                            // Use string resource with fallback to hardcoded value
+
                             try {
                                 nameTextView.setText(R.string.default_username);
                                 userName = getString(R.string.default_username);
                             } catch (Exception e) {
-                                // Fallback if resource is not found
+
                                 nameTextView.setText("User");
                                 userName = "User";
                             }
@@ -301,12 +286,12 @@ public class ProfileActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(ProfileActivity.this, "Error loading user data", Toast.LENGTH_SHORT).show();
-                    // Use string resource with fallback to hardcoded value
+
                     try {
                         nameTextView.setText(R.string.default_username);
                         userName = getString(R.string.default_username);
                     } catch (Exception ex) {
-                        // Fallback if resource is not found
+
                         nameTextView.setText("User");
                         userName = "User";
                     }
@@ -322,27 +307,25 @@ public class ProfileActivity extends AppCompatActivity {
             return;
         }
         
-        // Show a progress toast to indicate something is happening
+
         Toast.makeText(ProfileActivity.this, "Saving name...", Toast.LENGTH_SHORT).show();
         Log.d("ProfileActivity", "Attempting to save name: " + newName);
         
-        // First update the UI regardless of Firebase success
-        // This ensures the button always has a visible effect for the user
+
         userName = newName;
         nameTextView.setText(userName);
         toggleEditMode(false);
-        
-        // Also save to SharedPreferences for local persistence
+
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("user_name", newName);
         editor.apply();
         
-        // Try to update in Firebase if the user is logged in
+
         if (currentUser != null) {
             String uid = currentUser.getUid();
             Log.d("ProfileActivity", "Updating Firestore document for UID: " + uid);
             
-            // Update display name in Firebase Auth
+
             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                 .setDisplayName(newName)
                 .build();
@@ -355,8 +338,7 @@ public class ProfileActivity extends AppCompatActivity {
                         Log.e("ProfileActivity", "Failed to update profile in Firebase Auth", task.getException());
                     }
                 });
-                
-            // Also update in Firestore
+
             db.collection("users").document(uid)
                 .update("name", newName)
                 .addOnSuccessListener(aVoid -> {
@@ -365,7 +347,7 @@ public class ProfileActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Log.e("ProfileActivity", "Failed to update name in Firestore", e);
-                    // If Firestore update fails, try to create the document instead
+
                     db.collection("users").document(uid)
                         .set(new java.util.HashMap<String, Object>() {{
                             put("name", newName);
@@ -387,19 +369,13 @@ public class ProfileActivity extends AppCompatActivity {
     }
     
     private void logout() {
-        // Show confirmation dialog before logging out
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Logout");
         builder.setMessage("Do you want to logout?");
-        
-        // Add the buttons
         builder.setPositiveButton("Yes", (dialog, which) -> {
-            // Sign out from Firebase Authentication
             mAuth.signOut();
                     
             Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
-            
-            // Go back to login screen
             Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
@@ -407,11 +383,9 @@ public class ProfileActivity extends AppCompatActivity {
         });
         
         builder.setNegativeButton("No", (dialog, which) -> {
-            // User cancelled the logout
             dialog.dismiss();
         });
-        
-        // Create and show the AlertDialog
+
         AlertDialog dialog = builder.create();
         dialog.show();
     }
@@ -421,9 +395,7 @@ public class ProfileActivity extends AppCompatActivity {
         super.finish();
     }
     
-    /**
-     * Register the image picker activity result launcher
-     */
+
     private void registerImagePickerLauncher() {
         imagePickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -432,7 +404,7 @@ public class ProfileActivity extends AppCompatActivity {
                     Uri selectedImageUri = result.getData().getData();
                     if (selectedImageUri != null) {
                         try {
-                            // Process and save the selected image
+
                             saveProfileImage(selectedImageUri);
                         } catch (Exception e) {
                             Log.e("ProfileActivity", "Error processing selected image", e);
@@ -443,10 +415,7 @@ public class ProfileActivity extends AppCompatActivity {
             }
         );
     }
-    
-    /**
-     * Open the image picker to select a profile image after checking/requesting permissions
-     */
+
     private void openImagePicker() {
         if (checkAndRequestPermissions()) {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -455,74 +424,65 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
     
-    /**
-     * Register permission request launcher
-     */
+
     private void registerPermissionLauncher() {
         requestPermissionLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(),
             isGranted -> {
                 if (isGranted) {
-                    // Permission granted, open image picker
+
                     Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                     intent.setType("image/*");
                     imagePickerLauncher.launch(intent);
                 } else {
-                    // Permission denied, show explanation
+
                     Toast.makeText(this, "Permission is required to select a profile image", Toast.LENGTH_LONG).show();
                 }
             }
         );
     }
-    
-    /**
-     * Check and request necessary permissions
-     * @return true if permission is already granted, false if requested
-     */
+
     private boolean checkAndRequestPermissions() {
-        // For Android 13+ (API 33+)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_MEDIA_IMAGES)) {
-                    // Show an explanation to the user
+
                     showPermissionExplanationDialog(Manifest.permission.READ_MEDIA_IMAGES);
                     return false;
                 } else {
-                    // No explanation needed, request the permission
+
                     requestPermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES);
                     return false;
                 }
             }
         } 
-        // For Android 6-12 (API 23-32)
+
         else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                    // Show an explanation to the user
+
                     showPermissionExplanationDialog(Manifest.permission.READ_EXTERNAL_STORAGE);
                     return false;
                 } else {
-                    // No explanation needed, request the permission
+
                     requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
                     return false;
                 }
             }
         }
         
-        // Permission already granted
+
         return true;
     }
     
-    /**
-     * Show a dialog explaining why the permission is needed
-     * @param permission the permission to request
-     */
+
     private void showPermissionExplanationDialog(String permission) {
         new AlertDialog.Builder(this)
             .setTitle("Permission Required")
             .setMessage("This permission is needed to select images from your gallery for your profile picture.")
             .setPositiveButton("OK", (dialog, which) -> {
-                // Request the permission
+
                 requestPermissionLauncher.launch(permission);
             })
             .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
@@ -530,27 +490,25 @@ public class ProfileActivity extends AppCompatActivity {
             .show();
     }
     
-    /**
-     * Save the selected profile image
-     */
+
     private void saveProfileImage(Uri imageUri) {
         try {
-            // Get the bitmap from the uri
+
             InputStream inputStream = getContentResolver().openInputStream(imageUri);
             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
             if (inputStream != null) {
                 inputStream.close();
             }
             
-            // Save bitmap to internal storage
+
             FileOutputStream fos = openFileOutput(PROFILE_IMAGE_FILENAME, Context.MODE_PRIVATE);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos);
             fos.close();
             
-            // Update the profile image view
+
             profileImageView.setImageBitmap(bitmap);
             
-            // Save the path to SharedPreferences
+
             profileImagePath = getFilesDir().getAbsolutePath() + "/" + PROFILE_IMAGE_FILENAME;
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString(PROFILE_IMAGE_PATH, profileImagePath);
@@ -558,10 +516,9 @@ public class ProfileActivity extends AppCompatActivity {
             
             Toast.makeText(this, "Profile image updated", Toast.LENGTH_SHORT).show();
             
-            // Update Firebase profile if user is logged in
+
             if (currentUser != null) {
-                // Note: This would require Firebase Storage to properly implement
-                // For simplicity, we're just storing the image locally in this implementation
+
                 Log.d("ProfileActivity", "Profile image saved locally at: " + profileImagePath);
             }
             
@@ -571,27 +528,21 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
     
-    /**
-     * Load the profile image from storage if it exists
-     */
+
     private void loadProfileImage() {
-        // Check if we have a saved image path
         profileImagePath = sharedPreferences.getString(PROFILE_IMAGE_PATH, null);
         
         if (profileImagePath != null) {
             try {
-                // Load the saved image
                 FileInputStream fis = openFileInput(PROFILE_IMAGE_FILENAME);
                 Bitmap bitmap = BitmapFactory.decodeStream(fis);
                 fis.close();
                 
                 if (bitmap != null) {
-                    // Update the profile image view
                     profileImageView.setImageBitmap(bitmap);
                 }
             } catch (IOException e) {
                 Log.e("ProfileActivity", "Error loading profile image", e);
-                // If we fail to load the saved image, use the default
                 profileImageView.setImageResource(R.drawable.user_icon);
             }
         }

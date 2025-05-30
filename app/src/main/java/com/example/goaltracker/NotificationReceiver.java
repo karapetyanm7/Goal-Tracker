@@ -57,14 +57,13 @@ public class NotificationReceiver extends BroadcastReceiver {
         Log.d(TAG, "Message: " + message);
         Log.d(TAG, "Is one time: " + isOneTime);
         Log.d(TAG, "Reminder ID: " + reminderId);
-        
-        // Use default message if none provided
+
         if (message == null) {
             message = getRandomMessage();
             Log.d(TAG, "Using random message: " + message);
         }
         
-        // Use default title if no habit name
+
         String title;
         if (isHabitSpecific && habitName != null) {
             title = "Habit Reminder: " + habitName;
@@ -81,15 +80,15 @@ public class NotificationReceiver extends BroadcastReceiver {
             return;
         }
         
-        // Create intent for when user taps notification
+
         Intent mainIntent;
         if (isHabitSpecific && habitId != -1) {
-            // For habit-specific reminders, open the specific habit detail
+
             mainIntent = new Intent(context, HabitDetailActivity.class);
             mainIntent.putExtra("habit_id", habitId);
             mainIntent.putExtra("habit_name", habitName);
         } else {
-            // For general reminders, open the main activity
+
             mainIntent = new Intent(context, MainActivity.class);
         }
         
@@ -101,10 +100,10 @@ public class NotificationReceiver extends BroadcastReceiver {
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        // Ensure channel exists
+
         createNotificationChannel(context, notificationManager);
 
-        // Build notification
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.clock_icon)
             .setContentTitle(title)
@@ -116,7 +115,7 @@ public class NotificationReceiver extends BroadcastReceiver {
             .setLights(android.graphics.Color.BLUE, 3000, 3000)
             .setContentIntent(pendingIntent);
             
-        // For habit-specific notifications, use a different color
+
         if (isHabitSpecific) {
             builder.setColor(android.graphics.Color.GREEN);
         } else {
@@ -132,7 +131,7 @@ public class NotificationReceiver extends BroadcastReceiver {
             e.printStackTrace();
         }
 
-        // If it's a one-time reminder, remove it from SharedPreferences
+
         if (isOneTime) {
             try {
                 SharedPreferences sharedPreferences = context.getSharedPreferences("GoalTrackerPrefs", Context.MODE_PRIVATE);
@@ -141,7 +140,7 @@ public class NotificationReceiver extends BroadcastReceiver {
                 if (reminderSet != null && !reminderSet.isEmpty()) {
                     Log.d(TAG, "Found " + reminderSet.size() + " reminders in SharedPreferences");
                     
-                    // Create a new set since the returned set is immutable
+
                     Set<String> newReminderSet = new HashSet<>(reminderSet);
                     
                     String reminderIdStr = String.valueOf(reminderId);
